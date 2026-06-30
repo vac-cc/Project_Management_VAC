@@ -1,0 +1,31 @@
+Act as an elite UI/UX Designer and Frontend Developer. Build the complete initial Visual Layout and Interface Structure for the internal Operating System (workspace) of the strategic communications agency "VĀC Conscious Communication". 
+
+The entire interface must be deeply inspired by the exact graphic identity, spatial rhythm, minimalism, and dark layout of our official website: https://vac-cc.com. Focus 100% on a pixel-perfect, premium visual shell with smooth client-side interactions. No backend connection is required.
+
+### 1. STRICT VISUAL IDENTITY & GRAPHIC RULES (VĀC Brand Identity)
+- **Color Palette:** Pure Black backgrounds (#000000) as the canvas. Premium dark gray containers (#121212) for block definition. Pure White for high-contrast typography. Terracotta Orange (#BF5700) and Leaf Green (#99CC33) used strictly as elegant, intentional accent colors for badges, status indicators, and highlights.
+- **Typography:** Apply a clean, condensed sans-serif typographic style (like Inter Condensed or IBM Plex Sans Condensed) to replicate the bold, corporate narrow weight seen on vac-cc.com.
+- **Form & Shape:** Follow the website's aesthetic using soft rounded corners (border-radius: 12px / rounded-xl) on containers and buttons. Ensure generous padding and smooth, airy spacing between blocks to maintain an editorial, high-end look.
+
+### 2. CORE ARCHITECTURE: THE SINGLE-PAGE VIEWPORT LAYOUT
+Create a fixed left navigation sidebar and a main workspace area that displays 3 major visual zones simultaneously within a single screen viewport (no messy scrolling, clean grid layout):
+
+#### ZONE A: THE STRATEGIC DOCK & PRODUCTION VAULT (Top-Left Container)
+- **Identity:** Client name header (e.g., "Beach Pizza Cascais") with visual quick-access link icons for Website and Instagram.
+- **Presence:** Active team avatars aligned horizontally with a subtle green pulse indicator.
+- **The Production Vault UI:** A modular grid showcasing document card placeholders for "Client Contract (MSA)", "NDAs", "Public Space Licenses (CML)", and "EMEL Parking".
+- **Approval Flow Mockup:** A styled button for "Request Approval". Clicking it must visually demonstrate a status change: the badge next to it shifts from a gray "Draft" state to a blinking Terracotta Orange "Awaiting Catarina's Approval".
+
+#### ZONE B: THE FINANCIAL LEDGER & CREATIVE CANVAS (Center/Main Panel)
+- **Dynamic Budget Matrix UI:** A beautifully designed financial spreadsheet grid matching the dark website layout. Display styled columns for: "Total Client Approved Budget", "Total Estimated Costs", "Realized Costs", and a minimal progress bar for "Profit Margin Tracker" (glowing Leaf Green if healthy, shifting to Terracotta Orange if overridden).
+- **Overrun Visual State:** Include a toggle or a mock state where if costs look high, the row locks into a solid Terracotta Orange (#BF5700) style reading "CRITICAL: Budget Ceiling Exceeded".
+- **Interactive Gantt Timeline:** A horizontal visual production timeline showing phases (Pre-production -> Production -> Review -> Delivery).
+- **Miro-Style Media Canvas:** A dedicated central visual placeholder area with clean grid background lines, acting as an infinite moodboard sandbox.
+
+#### ZONE C: UTILITY & COMMUNICATIONS (Right Sidebar)
+- **Project Chat UI:** A modern sidebar messaging window layout showing text chat bubbles, placeholder user avatars, and input bar styling.
+- **Drive Asset Hub UI:** A grid layout displaying asset folders ("Logos & Icons", "Typography", "Raw Video Footage") designed as tactile file cards.
+
+### 3. TECHNICAL FRONTEND SPECIFICATIONS
+- Code this entirely using React, Tailwind CSS, and Lucide React icons.
+- Focus exclusively on frontend aesthetics, component architecture (Sidebar, MainWorkspace, FinancialLedger, ChatPanel), smooth CSS hover transitions, and mock data. No real external APIs or backend databases.
