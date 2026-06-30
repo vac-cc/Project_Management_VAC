@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:ital,wght@0,300;0,400;0,600;0,700;1,300&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
@@ -98,8 +98,8 @@
   --muted: 0 0% 12%;
   --muted-foreground: 0 0% 60%;
 
-  --accent: 80 60% 50%; /* Leaf Green */
-  --accent-foreground: 0 0% 100%;
+  --accent: 82 100% 37%; /* Leaf Green — exact VĀC brand lime #78BE00 */
+  --accent-foreground: 0 0% 0%;
 
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
@@ -108,7 +108,7 @@
   --ring: 27 100% 37%;
 
   --chart-1: 27 100% 37%;
-  --chart-2: 80 60% 50%;
+  --chart-2: 82 100% 37%;
   --chart-3: 0 0% 50%;
   --chart-4: 0 0% 70%;
   --chart-5: 0 0% 90%;
