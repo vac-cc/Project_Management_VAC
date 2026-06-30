@@ -1,0 +1,16 @@
+Act as a Senior Frontend Designer. We are completely changing the design system and visual direction of the platform to a high-end, ultra-clean, minimalist editorial aesthetic. 
+
+Please strip away the dark theme and rounded corners, and apply the following new global visual rules:
+
+### 1. NEW BRAND VISUAL DIRECTIONS & GRAPHIC RULES
+- **Color Palette:** Pure White backgrounds (#FFFFFF) as the primary canvas. Light, razor-thin gray borders (#E5E5E5 or #000000 at 10% opacity) for container definitions. Pure Black (#000000) for all primary text, headers, and structural lines. Terracotta Orange (#BF5700) and Leaf Green (#99CC33) remain strictly as highly intentional accent colors for states, alert badges, and graph lines.
+- **Form & Shape (SHARP EDGES):** Remove all rounded corners (`border-radius`, `rounded-xl`, etc.). Every single button, container, input field, card, and sidebar panel must have absolutely sharp, 90-degree square corners (`rounded-none` / `border-radius: 0px`).
+- **Typography:** Prepare the global CSS font-family hierarchy to receive our custom brand font (Bill Corporate Narrow). For titles, headers, and tables, use a bold, condensed, sharp sans-serif layout. All text must be high-contrast black-on-white.
+- **Aesthetics:** High-end gallery minimalism. Use generous whitespace, clean grids, and thin sharp lines to separate blocks rather than heavy backgrounds.
+
+### 2. COMPONENT DESIGN ADAPTATIONS
+- **Zone A (Dock & Agreements):** Clean white blocks with thin black borders. Avatars should now be sharp squares instead of circles.
+- **Zone B (Financial Ledger & Canvas):** The Excel-style ledger must look like a premium, architectural printed report—crisp black grid lines, clean margins, and square indicator bars. The Miro-Style canvas should have a very subtle light-gray dot grid over a pure white background.
+- **Zone C (Chat & Approvals):** Messaging bubbles should be replaced with clean, rectangular text blocks separated by sharp horizontal divider lines.
+
+Please apply this complete visual redesign across all zones while maintaining the structural tab system and features we built.

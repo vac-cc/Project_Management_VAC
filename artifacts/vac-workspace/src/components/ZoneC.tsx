@@ -6,10 +6,17 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2">
       <span className="text-accent font-bold text-sm leading-none">/</span>
-      <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.12em]">{children}</span>
+      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">{children}</span>
     </div>
   );
 }
+
+const messages = [
+  { initials: "CF", name: "Catarina F.", bg: "bg-accent text-white", message: "The event layout is confirmed for the 24th.", isSelf: false },
+  { initials: "MS", name: "Miguel S.",   bg: "bg-primary text-white", message: "Great. I'll have the sponsor decks ready by EOD.", isSelf: false },
+  { initials: "You", name: "You",        bg: "bg-foreground text-white", message: "Copy. Sending the venue brief now.", isSelf: true  },
+  { initials: "CF", name: "Catarina F.", bg: "bg-accent text-white", message: "Perfect, thanks!", isSelf: false },
+];
 
 export default function ZoneC() {
   const [approvalRequested, setApprovalRequested] = useState(false);
@@ -18,58 +25,39 @@ export default function ZoneC() {
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.5, delay: 0.3 }}
-      className="w-[300px] h-full border-l border-border bg-sidebar flex flex-col shrink-0"
+      transition={{ duration: 0.4, delay: 0.3 }}
+      className="w-[300px] h-full border-l border-border bg-background flex flex-col shrink-0"
     >
       {/* Project Chat */}
       <div className="flex-1 flex flex-col min-h-0 border-b border-border">
-        <div className="px-5 pt-5 pb-4 border-b border-[#1a1a1a] flex items-center justify-between">
+        {/* Header */}
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <SectionLabel>Project Chat</SectionLabel>
-          <div className="flex -space-x-2">
-            <div className="w-6 h-6 rounded-full bg-accent text-black border-2 border-sidebar flex items-center justify-center text-[9px] font-bold">CF</div>
-            <div className="w-6 h-6 rounded-full bg-primary text-white border-2 border-sidebar flex items-center justify-center text-[9px] font-bold">MS</div>
+          <div className="flex -space-x-1">
+            <div className="w-5 h-5 bg-accent border border-white flex items-center justify-center text-[8px] font-bold text-white">CF</div>
+            <div className="w-5 h-5 bg-primary border border-white flex items-center justify-center text-[8px] font-bold text-white">MS</div>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-4">
-          <ChatMessage
-            initials="CF"
-            color="bg-accent text-black"
-            message="The event layout is confirmed for the 24th."
-            name="Catarina F."
-          />
-          <ChatMessage
-            initials="MS"
-            color="bg-primary text-white"
-            message="Great. I'll have the sponsor decks ready by EOD."
-            name="Miguel S."
-          />
-          <ChatMessage
-            initials="You"
-            color="bg-[#1e1e1e] text-foreground"
-            message="Copy. Sending the venue brief now."
-            name="You"
-            isSelf
-          />
-          <ChatMessage
-            initials="CF"
-            color="bg-accent text-black"
-            message="Perfect, thanks!"
-            name="Catarina F."
-          />
+        {/* Messages — rectangular blocks with dividers, no bubbles */}
+        <div className="flex-1 overflow-y-auto flex flex-col divide-y divide-border">
+          {messages.map((msg, i) => (
+            <MessageRow key={i} {...msg} />
+          ))}
         </div>
 
-        <div className="px-4 py-3 border-t border-[#1a1a1a]">
-          <div className="relative">
+        {/* Input */}
+        <div className="border-t border-border p-4">
+          <div className="flex border border-border">
             <input
               type="text"
               placeholder="Type message..."
               data-testid="input-chat-message"
-              className="w-full bg-[#111] border border-[#1e1e1e] rounded-xl py-2.5 pl-4 pr-11 text-xs focus:outline-none focus:border-[#333] transition-colors font-sans placeholder:text-muted-foreground/50"
+              className="flex-1 bg-white px-3 py-2.5 text-xs focus:outline-none placeholder:text-muted-foreground font-sans text-foreground"
             />
             <button
               data-testid="button-send-message"
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-colors"
+              className="w-10 bg-foreground text-white flex items-center justify-center hover:bg-accent transition-colors"
             >
               <Send size={12} />
             </button>
@@ -78,82 +66,74 @@ export default function ZoneC() {
       </div>
 
       {/* Approval Request */}
-      <div className="p-5 bg-background flex flex-col gap-4">
-        <div className="flex items-center justify-between">
+      <div className="flex flex-col divide-y divide-border">
+        {/* Header */}
+        <div className="px-5 py-4 flex items-center justify-between">
           <SectionLabel>Approval Request</SectionLabel>
           {approvalRequested ? (
-            <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-md uppercase tracking-wider animate-pulse flex items-center gap-1">
+            <span className="text-[9px] font-bold text-primary uppercase tracking-wider flex items-center gap-1">
               <CircleDashed size={8} className="animate-spin" />
               Pending
             </span>
           ) : (
-            <span className="text-[9px] font-bold text-muted-foreground bg-[#111] border border-[#1e1e1e] px-2 py-1 rounded-md uppercase tracking-wider">
-              Draft
-            </span>
+            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider border border-border px-2 py-0.5">Draft</span>
           )}
         </div>
 
+        {/* Status block */}
         {approvalRequested ? (
-          <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-start gap-3">
-            <CircleDashed size={14} className="text-primary animate-spin shrink-0 mt-0.5" />
-            <div>
-              <p className="text-xs font-bold text-primary">Awaiting Catarina's Approval</p>
-              <p className="text-[10px] text-muted-foreground mt-1">Beach Pizza Cascais · Brand Strategy</p>
+          <div className="px-5 py-4 bg-primary/5 border-l-2 border-l-primary">
+            <div className="flex items-start gap-2.5">
+              <CircleDashed size={13} className="text-primary animate-spin shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-bold text-primary">Awaiting Catarina's Approval</p>
+                <p className="text-[10px] text-muted-foreground mt-1">Beach Pizza Cascais · Brand Strategy</p>
+              </div>
             </div>
           </div>
         ) : (
-          <div className="bg-[#0d0d0d] border border-[#1a1a1a] rounded-xl p-4">
+          <div className="px-5 py-4 bg-muted">
             <p className="text-[11px] text-muted-foreground leading-relaxed">
               Send to <span className="text-foreground font-semibold">Catarina Figueiredo</span> for sign-off before production begins.
             </p>
           </div>
         )}
 
-        <button
-          onClick={() => setApprovalRequested(true)}
-          disabled={approvalRequested}
-          data-testid="button-request-approval"
-          className={`w-full py-3 rounded-xl font-bold uppercase tracking-wider text-xs transition-all duration-300 flex items-center justify-center gap-2 ${
-            approvalRequested
-              ? "bg-[#111] text-muted-foreground border border-[#1e1e1e] cursor-default"
-              : "bg-primary text-white hover:bg-primary/90 hover:-translate-y-0.5 shadow-lg shadow-primary/10"
-          }`}
-        >
-          {approvalRequested ? (
-            <>
-              <CheckCircle2 size={13} />
-              Approval Requested
-            </>
-          ) : (
-            "Request Approval"
-          )}
-        </button>
+        {/* CTA */}
+        <div className="px-5 py-4">
+          <button
+            onClick={() => setApprovalRequested(true)}
+            disabled={approvalRequested}
+            data-testid="button-request-approval"
+            className={`w-full py-3 text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 border transition-all duration-150 ${
+              approvalRequested
+                ? "bg-muted text-muted-foreground border-border cursor-default"
+                : "bg-foreground text-white border-foreground hover:bg-accent hover:border-accent"
+            }`}
+          >
+            {approvalRequested ? (
+              <><CheckCircle2 size={12} /> Approval Requested</>
+            ) : (
+              "Request Approval"
+            )}
+          </button>
+        </div>
       </div>
     </motion.div>
   );
 }
 
-function ChatMessage({ initials, color, message, name, isSelf = false }: {
-  initials: string;
-  color: string;
-  message: string;
-  name: string;
-  isSelf?: boolean;
+function MessageRow({ initials, name, message, bg, isSelf }: {
+  initials: string; name: string; message: string; bg: string; isSelf: boolean;
 }) {
   return (
-    <div className={`flex gap-2.5 ${isSelf ? "flex-row-reverse" : ""}`}>
-      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${color}`}>
+    <div className={`px-5 py-3.5 flex gap-3 ${isSelf ? "bg-muted/60 flex-row-reverse" : "bg-white"}`}>
+      <div className={`w-6 h-6 ${bg} flex items-center justify-center text-[9px] font-bold shrink-0`}>
         {initials}
       </div>
-      <div className={`flex flex-col ${isSelf ? "items-end" : "items-start"}`}>
-        <span className="text-[9px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">{name}</span>
-        <div className={`px-3 py-2 rounded-2xl text-xs leading-relaxed max-w-[185px] ${
-          isSelf
-            ? "bg-primary text-white rounded-tr-sm"
-            : "bg-[#111] border border-[#1e1e1e] rounded-tl-sm text-foreground"
-        }`}>
-          {message}
-        </div>
+      <div className={`flex flex-col flex-1 ${isSelf ? "items-end" : "items-start"}`}>
+        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider mb-1">{name}</span>
+        <p className="text-xs text-foreground leading-relaxed">{message}</p>
       </div>
     </div>
   );

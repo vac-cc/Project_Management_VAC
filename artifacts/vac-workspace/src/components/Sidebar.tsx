@@ -25,47 +25,34 @@ export default function Sidebar() {
   const [location] = useLocation();
 
   return (
-    <aside className="w-[220px] h-full bg-sidebar border-r border-border flex flex-col justify-between py-6 shrink-0 overflow-hidden">
-      {/* Logo */}
+    <aside className="w-[220px] h-full bg-sidebar border-r border-border flex flex-col justify-between py-7 shrink-0 overflow-hidden">
       <div>
-        <div className="px-5 mb-8">
+        {/* Logo — mix-blend-mode:multiply makes black bg transparent on white */}
+        <div className="px-6 mb-10">
           <img
             src={logoSrc}
             alt="VĀC Conscious Communication"
-            className="w-[130px] object-contain"
+            className="w-[120px] object-contain"
+            style={{ mixBlendMode: "multiply" }}
             data-testid="img-vac-logo"
           />
         </div>
 
-        {/* Nav */}
-        <nav className="px-3 space-y-0.5">
+        <nav className="flex flex-col">
           {navItems.map((item) => {
             const isActive = location === item.path || (item.path !== "/" && location.startsWith(item.path));
             return (
               <Link key={item.name} href={item.path}>
                 <div
                   data-testid={`nav-item-${item.name.toLowerCase()}`}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 group relative ${
+                  className={`flex items-center gap-3 px-6 py-2.5 cursor-pointer transition-all duration-150 border-l-2 ${
                     isActive
-                      ? "bg-card text-foreground"
-                      : "text-muted-foreground hover:bg-card/40 hover:text-foreground"
+                      ? "bg-white border-l-accent text-foreground"
+                      : "border-l-transparent text-muted-foreground hover:bg-white hover:text-foreground"
                   }`}
                 >
-                  {/* Active indicator — "/" brand mark */}
-                  <span
-                    className={`absolute left-0 top-1/2 -translate-y-1/2 text-base font-bold leading-none transition-all duration-200 ${
-                      isActive ? "text-accent opacity-100" : "opacity-0"
-                    }`}
-                    aria-hidden="true"
-                  >
-                    /
-                  </span>
-
-                  <item.icon
-                    size={16}
-                    className={`shrink-0 transition-colors ${isActive ? "text-accent" : "group-hover:text-foreground"}`}
-                  />
-                  <span className="font-semibold text-sm tracking-wide">{item.name}</span>
+                  <item.icon size={15} className={isActive ? "text-accent" : ""} />
+                  <span className="font-bold text-sm tracking-wide">{item.name}</span>
                 </div>
               </Link>
             );
@@ -74,17 +61,21 @@ export default function Sidebar() {
       </div>
 
       {/* Active Team */}
-      <div className="px-5 space-y-3">
-        <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-[0.15em]">Active Team</p>
-        <div className="flex -space-x-2">
-          {["CF", "MS", "JP"].map((initials, i) => (
+      <div className="px-6 space-y-3 border-t border-border pt-6">
+        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.15em]">Active Team</p>
+        <div className="flex gap-1.5">
+          {[
+            { initials: "CF", bg: "bg-accent" },
+            { initials: "MS", bg: "bg-primary" },
+            { initials: "JP", bg: "bg-foreground" },
+          ].map(({ initials, bg }) => (
             <div
-              key={i}
-              className="w-8 h-8 rounded-full bg-card border-2 border-sidebar flex items-center justify-center text-[10px] font-bold relative"
+              key={initials}
               data-testid={`avatar-team-${initials}`}
+              className={`w-8 h-8 ${bg} flex items-center justify-center text-[10px] font-bold text-white relative`}
             >
               {initials}
-              <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-accent border-2 border-sidebar animate-pulse" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-accent border border-sidebar" />
             </div>
           ))}
         </div>
