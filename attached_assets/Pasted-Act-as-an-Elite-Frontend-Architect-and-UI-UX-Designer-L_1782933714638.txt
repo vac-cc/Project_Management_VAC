@@ -1,0 +1,24 @@
+Act as an Elite Frontend Architect and UI/UX Designer. Let's execute a high-end upgrade to the Fixed Left Navigation Sidebar and inject two major operational fullscreen modules into our platform. Maintain our strict sharp-cornered (rounded-none), high-contrast minimalist white aesthetic.
+
+Please engineer the following structural layout and page systems:
+
+### 1. COLLAPSIBLE LEFT NAVIGATION SIDEBAR
+- **Dynamic Collapse Toggle:** Add a crisp, minimal arrow icon button (`<` / `>`) at the edge of the Fixed Left Navigation Sidebar.
+- **The Collapse Behavior:** Clicking this trigger must smoothly collapse the sidebar to the left, reducing its width to zero or a tiny icon-only strip.
+- **Responsive Flex Redistribution:** When collapsed, Zones A, B, and C must automatically flex and expand horizontally to occupy the newly available fullscreen estate via smooth CSS transitions (`transition-all duration-300`). Clicking it again must pull the sidebar back out.
+
+### 2. NEW "TEAM" HUMAN RESOURCES MANAGEMENT PAGE
+When the "Team" tab is clicked on the sidebar, it must completely swap out the current active project workspace and load a dedicated, full-screen **Agency Human Resources Page**:
+- **Layout Architecture:** Build a clean grid or list layout with architectural sections for every professional in the agency network.
+- **Data Profiles:** Each team member's profile card/section must structurally display: Name, Photo/Avatar placeholder, Area of Expertise, Specific Skills tags, a simulated "View CV" file link, a "Portfolio" link, and a beautifully aligned Short Bio block.
+
+### 3. NEW "CLIENTS" MASTER PORTFOLIO PAGE
+When the "Clients" tab is clicked on the sidebar, it must completely swap out the current project workspace and load a dedicated, full-screen **Master Clients Database Page**:
+- **Layout Architecture:** Build an editorial dashboard view divided into clean, independent structural blocks for each corporate client onboarded by the agency.
+- **Data Profiles:** Each client section must cleanly house: Company Name, Logo placeholder, Website link, Social Media anchor links, Company Contact Details, and a short Company Biography.
+- **Financial & Operational Ledger Summary:** Each client profile must dynamically display three high-level business metrics:
+  1. A list of all active projects currently running with the agency.
+  2. **Overall Profit Generated:** A clear currency metric displaying total net profit brought to the agency by this client across time.
+  3. **Overall Project Count:** A precise numerical tally of all past and present projects executed with the agency.
+
+Maintain our signature pure white canvas, sharp 90-degree framing (`rounded-none`), thin black structural divider borders, and bold typography. Update the workspace and verify all tab transitions run smoothly without breaking component states.
