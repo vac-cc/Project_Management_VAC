@@ -1,0 +1,20 @@
+Act as an Elite UI/UX Designer and Frontend Developer. Let's overhaul the Production Timeline in Zone B to maximize operational clarity while enforcing our brutalist-minimalist style: Pure White canvas, sharp 90-degree corners (rounded-none), clean condensed typography, and razor-thin borders.
+
+Please execute the following structural layout updates:
+
+### 1. LAYOUT RE-ARRANGEMENT & STATUS CARDS (Zone B)
+- **Status Sections Relocation:** Move the status overview cards ("Completed", "In Progress", "Upcoming") from their current position and place them near the top, directly below the "Production Schedule" section title and BEFORE the Gantt chart area.
+- **Dynamic Meeting Triggers inside Status Cards:** Inside the "Upcoming" or active status areas, integrate clean, high-contrast text line items or badges indicating scheduled calls (e.g., "Weekly Team Sync" or "Client Alignment Call"). 
+  - Each call item must feature a crisp icon (like a video/phone symbol).
+  - **Interaction Mockup:** Design a clean hover state for these meeting items. Clicking them should visually behave like an external link trigger, displaying a stylized tooltip popup: "Redirecting to Microsoft Teams / Calendar Invite Link".
+
+### 2. GANTT CHART OVERHAUL & INTERACTION LIFE-CYCLE
+- **Hover Micro-Interaction Indicator:** When the user hovers their mouse over the main compact Gantt chart area, trigger a smooth visual state change (e.g., a clean cursor change to a pointer or a subtle border highlight) accompanied by a minimalist floating tooltip text layout that clearly reads: "Click to expand detailed production Gantt chart".
+- **Full Gantt Chart Overlay/Modal Expansion:** Clicking this compact area must open a full-screen or expanded view modal inside the platform without losing the general project context. 
+- **The Detailed Gantt Matrix Design:** This expanded chart must look pristine, architectural, and highly scannable. It must structure a grid mapping:
+  - **Rows:** Specific operational Tasks (e.g., Scenography Build, Print Proofing, Copywriting Review).
+  - **Columns:** The assigned professional responsible (e.g., "Marta", "Tiago") mapped against a horizontal Date Calendar Timeline layout.
+  - **Progress Visuals:** Use sharp, solid rectangular block bars (no rounded edges) to represent task durations. Completed tasks should be solid black or muted gray, while active bottlenecks or high-priority items use Terracotta Orange (#BF5700) or Leaf Green (#99CC33) selectively.
+  - Include a prominent, sharp "Close / X" button at the top right to return to the main viewport.
+
+Ensure all padding values, thin dividers, and fonts align perfectly to keep the layout feeling like a high-end design report. Update the workspace preview for testing.
