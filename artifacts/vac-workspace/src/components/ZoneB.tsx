@@ -504,13 +504,105 @@ function CostForm({ onClose, onSubmit }: { onClose: () => void; onSubmit: (data:
 /* ─── Timeline Panel ─────────────────────────────────────── */
 /* ── Timeline data — anchored to Wed 1 Jul 2026 (Lisbon/WEST) ── */
 
-// Assignee color palette — strict VĀC brand: Leaf Green (#99CC33) + Terracotta (#BF5700) tints & shades
-const ASSIGNEE_PALETTE: Record<string, { bg: string; text: string; light: string }> = {
-  "Marta":    { bg: "#994500", text: "#fff", light: "#FAEEE6" },  // terracotta dark
-  "Tiago":    { bg: "#6B9424", text: "#fff", light: "#EEF5DC" },  // leaf green dark
-  "Catarina": { bg: "#BF5700", text: "#fff", light: "#FAEEE6" },  // terracotta base
-  "JP":       { bg: "#99CC33", text: "#fff", light: "#EEF8CC" },  // leaf green base
-  "Miguel":   { bg: "#D97533", text: "#fff", light: "#FAF1E8" },  // terracotta tint
+// ── Brand Pattern Bank — 6 geometric styles, strictly Terracotta #BF5700 + Leaf Green #99CC33 ──
+type PatternEntry = {
+  name: string;
+  bar: React.CSSProperties;
+  done: React.CSSProperties;
+  upcoming: React.CSSProperties;
+  text: string;
+};
+
+const PATTERN_BANK: Record<string, PatternEntry> = {
+  // 1. Solid Leaf Green
+  solidGreen: {
+    name: "Solid Green",
+    bar:      { background: "#99CC33" },
+    done:     { background: "rgba(0,0,0,0.13)" },
+    upcoming: { background: "#EEF8CC", outline: "1px solid #99CC33" },
+    text: "#fff",
+  },
+  // 2. Solid Terracotta
+  solidTerracotta: {
+    name: "Solid Terracotta",
+    bar:      { background: "#BF5700" },
+    done:     { background: "rgba(0,0,0,0.13)" },
+    upcoming: { background: "#FAEEE6", outline: "1px solid #BF5700" },
+    text: "#fff",
+  },
+  // 3. 45° Diagonal Stripes — Green + Black
+  stripedGreen: {
+    name: "Striped Green",
+    bar: {
+      backgroundImage: "repeating-linear-gradient(45deg,#99CC33 0px,#99CC33 3px,#1a1a1a 3px,#1a1a1a 6px)",
+    },
+    done:     { background: "rgba(0,0,0,0.13)" },
+    upcoming: {
+      backgroundImage: "repeating-linear-gradient(45deg,rgba(153,204,51,0.28) 0px,rgba(153,204,51,0.28) 3px,rgba(0,0,0,0.07) 3px,rgba(0,0,0,0.07) 6px)",
+      outline: "1px solid rgba(153,204,51,0.45)",
+    },
+    text: "#fff",
+  },
+  // 4. 45° Diagonal Stripes — Terracotta + Black
+  stripedTerracotta: {
+    name: "Striped Terracotta",
+    bar: {
+      backgroundImage: "repeating-linear-gradient(45deg,#BF5700 0px,#BF5700 3px,#1a1a1a 3px,#1a1a1a 6px)",
+    },
+    done:     { background: "rgba(0,0,0,0.13)" },
+    upcoming: {
+      backgroundImage: "repeating-linear-gradient(45deg,rgba(191,87,0,0.28) 0px,rgba(191,87,0,0.28) 3px,rgba(0,0,0,0.07) 3px,rgba(0,0,0,0.07) 6px)",
+      outline: "1px solid rgba(191,87,0,0.45)",
+    },
+    text: "#fff",
+  },
+  // 5. Micro-dot matrix — green dots on pale green base
+  dottedGreen: {
+    name: "Dotted Grid",
+    bar: {
+      backgroundColor: "#6B9424",
+      backgroundImage: "radial-gradient(circle,rgba(238,248,204,0.85) 1.5px,transparent 1.5px)",
+      backgroundSize: "7px 7px",
+    },
+    done:     { background: "rgba(0,0,0,0.13)" },
+    upcoming: {
+      backgroundColor: "#EEF8CC",
+      backgroundImage: "radial-gradient(circle,rgba(107,148,36,0.45) 1.5px,transparent 1.5px)",
+      backgroundSize: "7px 7px",
+      outline: "1px solid #99CC33",
+    },
+    text: "#fff",
+  },
+  // 6. Crosshatch grid mesh — white grid over solid terracotta
+  crosshatchTerracotta: {
+    name: "Crosshatch",
+    bar: {
+      backgroundColor: "#994500",
+      backgroundImage: [
+        "repeating-linear-gradient(0deg,rgba(255,255,255,0.22) 0px,rgba(255,255,255,0.22) 1px,transparent 1px,transparent 7px)",
+        "repeating-linear-gradient(90deg,rgba(255,255,255,0.22) 0px,rgba(255,255,255,0.22) 1px,transparent 1px,transparent 7px)",
+      ].join(","),
+    },
+    done:     { background: "rgba(0,0,0,0.13)" },
+    upcoming: {
+      backgroundColor: "#FAEEE6",
+      backgroundImage: [
+        "repeating-linear-gradient(0deg,rgba(191,87,0,0.22) 0px,rgba(191,87,0,0.22) 1px,transparent 1px,transparent 7px)",
+        "repeating-linear-gradient(90deg,rgba(191,87,0,0.22) 0px,rgba(191,87,0,0.22) 1px,transparent 1px,transparent 7px)",
+      ].join(","),
+      outline: "1px solid rgba(191,87,0,0.4)",
+    },
+    text: "#fff",
+  },
+};
+
+// Assignee → pattern mapping (Pattern 6 is in the bank, available for future team members)
+const ASSIGNEE_PALETTE: Record<string, PatternEntry> = {
+  "Marta":    PATTERN_BANK.solidGreen,           // P1 Solid Green
+  "Tiago":    PATTERN_BANK.solidTerracotta,       // P2 Solid Terracotta
+  "Catarina": PATTERN_BANK.stripedGreen,          // P3 Striped Green
+  "JP":       PATTERN_BANK.stripedTerracotta,     // P4 Striped Terracotta
+  "Miguel":   PATTERN_BANK.dottedGreen,           // P5 Dotted Grid
 };
 
 // 15 working days (Mon–Fri × 3 weeks) centred on Jul 1 2026
@@ -780,12 +872,13 @@ function TimelinePanel() {
                   </h2>
                 </div>
                 <div className="flex items-center gap-6">
-                  {/* Assignee legend */}
+                  {/* Assignee legend — pattern swatches */}
                   <div className="flex items-center gap-3 flex-wrap">
-                    {Object.entries(ASSIGNEE_PALETTE).map(([name, c]) => (
+                    {Object.entries(ASSIGNEE_PALETTE).map(([name, p]) => (
                       <span key={name} className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-                        <span className="w-2.5 h-2.5" style={{ background: c.bg }} />
-                        {name}
+                        <span className="w-5 h-3 shrink-0 border border-black/10" style={p.bar} />
+                        <span>{name}</span>
+                        <span className="text-[8px] normal-case font-normal text-muted-foreground/60">— {p.name}</span>
                       </span>
                     ))}
                   </div>
@@ -861,8 +954,8 @@ function TimelinePanel() {
                           <td className="px-4 py-3 border-r border-black/10 sticky left-36 bg-inherit z-10 w-28">
                             <div className="flex items-center gap-2">
                               <span
-                                className="w-5 h-5 flex items-center justify-center text-[9px] font-bold shrink-0"
-                                style={{ background: palette.bg, color: palette.text }}
+                                className="w-5 h-5 flex items-center justify-center text-[9px] font-bold shrink-0 border border-black/10"
+                                style={{ ...palette.bar, color: palette.text }}
                               >
                                 {row.assignee.slice(0,1)}
                               </span>
@@ -873,11 +966,10 @@ function TimelinePanel() {
                             const inBar = wi >= row.start && wi < row.end;
                             const isStart = wi === row.start;
                             const isEnd = wi === row.end - 1;
-                            const bgColor = row.status === "done"
-                              ? "rgba(0,0,0,0.18)"
-                              : row.status === "upcoming"
-                              ? palette.light
-                              : palette.bg;
+                            const barCss: React.CSSProperties =
+                              row.status === "done"     ? palette.done :
+                              row.status === "upcoming" ? palette.upcoming :
+                              palette.bar;
                             const isTodayCol = d.isToday;
                             return (
                               <td
@@ -887,10 +979,7 @@ function TimelinePanel() {
                                 {inBar && (
                                   <div
                                     className={`h-5 ${isStart ? "ml-1" : ""} ${isEnd ? "mr-1" : ""}`}
-                                    style={{
-                                      background: bgColor,
-                                      border: row.status === "upcoming" ? `1px solid ${palette.bg}` : "none",
-                                    }}
+                                    style={barCss}
                                   />
                                 )}
                                 {/* TODAY column marker line */}

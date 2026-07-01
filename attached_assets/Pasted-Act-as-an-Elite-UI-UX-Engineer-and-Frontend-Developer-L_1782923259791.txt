@@ -1,0 +1,19 @@
+Act as an Elite UI/UX Engineer and Frontend Developer. Let's solve the collaborator visual overlapping issue inside the Timeline (Zone B) by designing a scalable, high-end geometric pattern mapping system. Keep our strict sharp-cornered (rounded-none), high-contrast minimalist aesthetic.
+
+Please implement the following graphical updates to the Gantt chart:
+
+### 1. ARCHITECTURE OF THE BRAND PATTERN BANK
+- Create a pre-saved repository of at least 6 distinct visual styles inside the frontend system to support large teams. These styles must use **strictly** our official brand palette (Terracotta Orange `#BF5700` and Leaf Green `#99CC33`) along with Pure Black and White, but differentiated through crisp, architectural CSS/SVG patterns.
+- Implement the following specific geometric patterns:
+  - **Pattern 1 (Solid):** Solid Brand Leaf Green.
+  - **Pattern 2 (Solid):** Solid Brand Terracotta Orange.
+  - **Pattern 3 (Striped Green):** Fine, 45-degree diagonal black-and-green lines (`repeating-linear-gradient`).
+  - **Pattern 4 (Striped Terracotta):** Fine, 45-degree diagonal black-and-terracotta lines.
+  - **Pattern 5 (Dotted Grid):** A crisp, architectural micro-dot matrix pattern over a light green base.
+  - **Pattern 6 (Crosshatch):** A fine, sharp grid mesh pattern over a light terracotta base.
+
+### 2. VISUAL DIFFERENTIATION ON THE TIMELINE ROW
+- **Collaborator Assignment Update:** Apply these highly contrasting patterns immediately to differentiate users who previously shared similar color weights (e.g., give Tiago a solid Terracotta block, and give JP the distinctive sharp Striped Terracotta pattern).
+- **Legend & Avatar Alignment:** The miniature color/pattern badge next to the collaborator's name in the sidebar/legend must perfectly match the exact pattern texture used inside their horizontal task duration bars on the timeline grid.
+
+Ensure these textured bars look sharp, modern, and readable against the white background grid, without creating visual vibration. Update the workspace preview for testing.
