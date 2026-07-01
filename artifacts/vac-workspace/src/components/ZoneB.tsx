@@ -118,7 +118,10 @@ function FinancePanel({ overrun, setOverrun, drawerOpen, setDrawerOpen, pendingC
         {/* Report header */}
         <div className="flex items-center justify-between px-7 py-5 border-b border-border shrink-0">
           <div>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Project Financial Report</p>
+            <div className="flex items-center gap-2">
+              <span className="text-accent font-bold text-sm leading-none">/</span>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Project Financial Report</p>
+            </div>
             <p className="text-xs text-foreground font-medium mt-0.5">Beach Pizza Cascais · Brand Strategy & Events</p>
           </div>
           <button
@@ -180,25 +183,25 @@ function FinancePanel({ overrun, setOverrun, drawerOpen, setDrawerOpen, pendingC
         {/* Budget Breakdown */}
         <div className="flex flex-col shrink-0">
 
-          {/* Section header + CTA button */}
-          <div className="px-7 py-4 border-b border-border flex items-center justify-between bg-white">
-            <div className="flex items-center gap-2">
-              <span className="text-accent font-bold text-sm leading-none">/</span>
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Budget Breakdown</span>
-            </div>
-            <button
-              onClick={() => setDrawerOpen(true)}
-              data-testid="button-add-cost"
-              className="flex items-center gap-2 px-4 py-2 bg-accent text-white text-[10px] font-bold uppercase tracking-widest hover:bg-foreground transition-colors"
-            >
-              <Plus size={10} />
-              Add Cost to be Approved
-            </button>
+          {/* Budget Breakdown label */}
+          <div className="px-7 py-4 border-b border-border flex items-center gap-2 bg-white">
+            <span className="text-accent font-bold text-sm leading-none">/</span>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Budget Breakdown</span>
           </div>
 
-          {/* Column headers */}
-          <div className="grid grid-cols-[1fr_auto_auto_160px] px-7 py-3 border-b border-border bg-muted">
-            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Line Item</p>
+          {/* Column headers — "+ Add Cost" embedded in Line Item cell */}
+          <div className="grid grid-cols-[1fr_auto_auto_160px] px-7 py-3 border-b border-border bg-muted items-center">
+            <div className="flex items-center gap-3">
+              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Line Item</p>
+              <button
+                onClick={() => setDrawerOpen(true)}
+                data-testid="button-add-cost"
+                className="flex items-center gap-1 px-2 py-0.5 bg-accent text-white text-[9px] font-bold uppercase tracking-wider hover:bg-foreground transition-colors"
+              >
+                <Plus size={8} />
+                Add Cost
+              </button>
+            </div>
             <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em] w-24 text-right">Spent</p>
             <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em] w-24 text-right mr-4">Allocated</p>
             <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Utilization</p>
@@ -295,7 +298,7 @@ function CostForm({ onClose, onSubmit }: { onClose: () => void; onSubmit: (data:
     setSubmitted(true);
     setTimeout(() => {
       onSubmit({
-        category: category || "Uncategorised",
+        category: category === "Other" ? (otherCategory.trim() || "Other") : (category || "Uncategorised"),
         value: parseFloat(costValue) || 0,
         paymentTerms,
         description,
