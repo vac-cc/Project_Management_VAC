@@ -46,25 +46,32 @@ export default function ZoneB({ onCostSubmitted }: ZoneBProps) {
       className="flex-1 h-full flex flex-col min-w-0 bg-white relative overflow-hidden"
     >
       {/* Tab Bar */}
-      <div className="border-b border-border flex items-end px-7 pt-6 shrink-0">
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => { setActiveTab(tab.id); setDrawerOpen(false); }}
-              data-testid={`tab-${tab.id}`}
-              className={`flex items-center gap-1.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] border-b-2 -mb-px transition-all duration-150 ${
-                isActive
-                  ? "text-foreground border-b-accent"
-                  : "text-muted-foreground border-b-transparent hover:text-foreground"
-              }`}
-            >
-              {isActive && <span className="text-accent font-bold text-sm leading-none">/</span>}
-              {tab.label}
-            </button>
-          );
-        })}
+      <div className="border-b border-border flex items-end justify-between px-7 pt-6 shrink-0">
+        <div className="flex items-end">
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => { setActiveTab(tab.id); setDrawerOpen(false); }}
+                data-testid={`tab-${tab.id}`}
+                className={`flex items-center gap-1.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] border-b-2 -mb-px transition-all duration-150 ${
+                  isActive
+                    ? "text-foreground border-b-accent"
+                    : "text-muted-foreground border-b-transparent hover:text-foreground"
+                }`}
+              >
+                {isActive && <span className="text-accent font-bold text-sm leading-none">/</span>}
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+        {/* System clock — always visible, anchored right */}
+        <div className="flex items-center gap-1.5 mb-2.5 text-[9px] font-bold text-muted-foreground uppercase tracking-wider border border-border px-2.5 py-1 whitespace-nowrap shrink-0">
+          <span className="w-1.5 h-1.5 bg-foreground shrink-0" />
+          Wed · 1 Jul 2026 · Lisbon
+        </div>
       </div>
 
       {/* Tab Content */}
@@ -497,13 +504,13 @@ function CostForm({ onClose, onSubmit }: { onClose: () => void; onSubmit: (data:
 /* ─── Timeline Panel ─────────────────────────────────────── */
 /* ── Timeline data — anchored to Wed 1 Jul 2026 (Lisbon/WEST) ── */
 
-// Assignee color palette — premium tones complementary to VĀC brand
+// Assignee color palette — strict VĀC brand: Leaf Green (#99CC33) + Terracotta (#BF5700) tints & shades
 const ASSIGNEE_PALETTE: Record<string, { bg: string; text: string; light: string }> = {
-  "Marta":    { bg: "#8B6F5E", text: "#fff", light: "#F5EDE8" },  // cognac
-  "Tiago":    { bg: "#4A7B9D", text: "#fff", light: "#E5F0F8" },  // slate blue
-  "Catarina": { bg: "#5C8A5E", text: "#fff", light: "#E8F3E9" },  // sage
-  "JP":       { bg: "#7B6B9E", text: "#fff", light: "#EEE9F6" },  // dusty violet
-  "Miguel":   { bg: "#9E7A3A", text: "#fff", light: "#F6EFE1" },  // warm amber
+  "Marta":    { bg: "#994500", text: "#fff", light: "#FAEEE6" },  // terracotta dark
+  "Tiago":    { bg: "#6B9424", text: "#fff", light: "#EEF5DC" },  // leaf green dark
+  "Catarina": { bg: "#BF5700", text: "#fff", light: "#FAEEE6" },  // terracotta base
+  "JP":       { bg: "#99CC33", text: "#fff", light: "#EEF8CC" },  // leaf green base
+  "Miguel":   { bg: "#D97533", text: "#fff", light: "#FAF1E8" },  // terracotta tint
 };
 
 // 15 working days (Mon–Fri × 3 weeks) centred on Jul 1 2026
@@ -574,16 +581,10 @@ function TimelinePanel() {
             </div>
             <p className="text-xs text-foreground font-medium mt-0.5">Beach Pizza Cascais · Active: Production Phase</p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground uppercase tracking-wider border border-border px-2 py-1">
-              <span className="w-1.5 h-1.5 bg-foreground" />
-              Wed 1 Jul 2026 · Lisbon
-            </div>
-            <span className="flex items-center gap-1.5 text-[10px] font-bold text-primary uppercase tracking-wider">
-              <span className="w-1.5 h-1.5 bg-primary" style={{ animation:"pulse 2s infinite" }} />
-              In Production
-            </span>
-          </div>
+          <span className="flex items-center gap-1.5 text-[10px] font-bold text-primary uppercase tracking-wider">
+            <span className="w-1.5 h-1.5 bg-primary" style={{ animation:"pulse 2s infinite" }} />
+            In Production
+          </span>
         </div>
 
         {/* ── Phase Status Cards ── */}
@@ -649,7 +650,10 @@ function TimelinePanel() {
             </div>
             <button
               onClick={() => setGanttOpen(true)}
-              className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest border border-border px-2.5 py-1 hover:bg-foreground hover:text-white hover:border-foreground transition-all"
+              className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 transition-all text-white"
+              style={{ background: "#99CC33" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#7AA829"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#99CC33"; }}
             >
               Expand View
               <ExternalLink size={8} />
