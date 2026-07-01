@@ -871,25 +871,13 @@ function TimelinePanel() {
                     </span>
                   </h2>
                 </div>
-                <div className="flex items-center gap-6">
-                  {/* Assignee legend — pattern swatches */}
-                  <div className="flex items-center gap-3 flex-wrap">
-                    {Object.entries(ASSIGNEE_PALETTE).map(([name, p]) => (
-                      <span key={name} className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-                        <span className="w-5 h-3 shrink-0 border border-black/10" style={p.bar} />
-                        <span>{name}</span>
-                        <span className="text-[8px] normal-case font-normal text-muted-foreground/60">— {p.name}</span>
-                      </span>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => setGanttOpen(false)}
-                    data-testid="button-close-gantt"
-                    className="w-8 h-8 border border-black/10 flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors shrink-0"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
+                <button
+                  onClick={() => setGanttOpen(false)}
+                  data-testid="button-close-gantt"
+                  className="w-8 h-8 border border-black/10 flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors shrink-0"
+                >
+                  <X size={14} />
+                </button>
               </div>
 
               {/* Timeline grid */}
