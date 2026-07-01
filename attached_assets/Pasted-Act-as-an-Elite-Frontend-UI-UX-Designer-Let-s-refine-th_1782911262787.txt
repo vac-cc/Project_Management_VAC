@@ -1,0 +1,24 @@
+Act as an Elite Frontend UI/UX Designer. Let's refine the layout hierarchy of Zone B's Financial Ledger and optimize the fields within the cost submission side panel. Maintain our strict minimalist aesthetic: Pure White canvas, sharp 90-degree corners (rounded-none), and high-contrast typography.
+
+Execute the following layout and structural updates:
+
+### 1. FINANCIAL LEDGER RE-ARRANGEMENT (Zone B)
+- **Title Addition:** Add a prominent, clean, condensed header titled "Budget Breakdown" directly above the cost items section.
+- **Button Relocation & Styling:** Move the "+" button from the bottom of the table to the TOP of the breakdown list, placing it directly under the "Budget Breakdown" title and right above the cost rows.
+- **Button Visual Identification:** Style this "+" button with a solid, high-contrast block background color using our brand's Leaf Green (#99CC33) or Terracotta Orange (#BF5700) with bold white text (e.g., "+ Add Cost to be Approved") so it is instantly identifiable on the pure white canvas.
+
+### 2. COST SUBMISSION SIDE PANEL UPDATES
+Update the existing sliding form elements with the following precise data structures:
+
+- **Expanded Type of Cost Options:** Update the category dropdown to include the full specialized list: Graphic Design, Printing, Web design, 3D, Motion, Illustration, Art Direction, Licensing, Insurance, Legal, and Other.
+- **Conditional 'Other' Field Logic:** If the user selects the "Other" option from the dropdown, dynamically render a text input field immediately below it titled "Specify Cost Type" so they can write a custom category. This field must remain hidden unless "Other" is active.
+- **Overhauled Payment Terms:** Replace the existing options with this specific set (all styled inside clean, sharp-cornered selector blocks):
+  - Upfront (Replacing immediate)
+  - 30 days (Replacing Net 30)
+  - 60 days
+  - 90 days
+  - 30% advance / 70% on delivery
+  - 40% advance / 60% delivery
+  *(Ensure "Milestone" is entirely removed from the options).*
+
+Ensure all spacing between the new table layout elements and the form options feels balanced, keeping the clean grid alignment intact. Update the workspace preview for testing.

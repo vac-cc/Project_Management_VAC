@@ -176,8 +176,26 @@ function FinancePanel({ overrun, setOverrun, drawerOpen, setDrawerOpen, pendingC
           <MetricCell label="Invoiced to Date"    value="€28,000" sub="62% of approved budget"          />
         </div>
 
-        {/* Expense Breakdown */}
+        {/* Budget Breakdown */}
         <div className="flex flex-col shrink-0">
+
+          {/* Section header + CTA button */}
+          <div className="px-7 py-4 border-b border-border flex items-center justify-between bg-white">
+            <div className="flex items-center gap-2">
+              <span className="text-accent font-bold text-sm leading-none">/</span>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Budget Breakdown</span>
+            </div>
+            <button
+              onClick={() => setDrawerOpen(true)}
+              data-testid="button-add-cost"
+              className="flex items-center gap-2 px-4 py-2 bg-accent text-white text-[10px] font-bold uppercase tracking-widest hover:bg-foreground transition-colors"
+            >
+              <Plus size={10} />
+              Add Cost to be Approved
+            </button>
+          </div>
+
+          {/* Column headers */}
           <div className="grid grid-cols-[1fr_auto_auto_160px] px-7 py-3 border-b border-border bg-muted">
             <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Line Item</p>
             <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em] w-24 text-right">Spent</p>
@@ -212,18 +230,6 @@ function FinancePanel({ overrun, setOverrun, drawerOpen, setDrawerOpen, pendingC
               </motion.div>
             ))}
           </AnimatePresence>
-
-          {/* + Add Cost trigger */}
-          <button
-            onClick={() => setDrawerOpen(true)}
-            data-testid="button-add-cost"
-            className="flex items-center gap-2 px-7 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-wider hover:text-foreground hover:bg-muted transition-colors border-b border-border w-full text-left group"
-          >
-            <span className="w-5 h-5 border border-current flex items-center justify-center group-hover:border-foreground group-hover:bg-foreground group-hover:text-white transition-all">
-              <Plus size={11} />
-            </span>
-            Add Cost to be Approved
-          </button>
         </div>
       </div>
 
@@ -261,8 +267,8 @@ function FinancePanel({ overrun, setOverrun, drawerOpen, setDrawerOpen, pendingC
 }
 
 /* ─── Cost Submission Form ─────────────────────────────── */
-const CATEGORIES = ["Scenography", "Videography", "Photography", "Catering", "Permits", "Logistics", "Talent / Casting", "Music & Licensing", "Post-Production", "Other"];
-const PAYMENT_TERMS = ["50% Advance / 50% On Delivery", "100% Advance", "Net 30", "Net 15", "Immediate", "Milestone-Based"];
+const CATEGORIES = ["Graphic Design", "Printing", "Web Design", "3D", "Motion", "Illustration", "Art Direction", "Licensing", "Insurance", "Legal", "Other"];
+const PAYMENT_TERMS = ["Upfront", "30 days", "60 days", "90 days", "30% advance / 70% on delivery", "40% advance / 60% on delivery"];
 
 interface CostFormData {
   category: string;
@@ -273,13 +279,14 @@ interface CostFormData {
 }
 
 function CostForm({ onClose, onSubmit }: { onClose: () => void; onSubmit: (data: CostFormData) => void }) {
-  const [category, setCategory]       = useState("");
-  const [costValue, setCostValue]     = useState("");
+  const [category, setCategory]         = useState("");
+  const [otherCategory, setOtherCategory] = useState("");
+  const [costValue, setCostValue]       = useState("");
   const [paymentTerms, setPaymentTerms] = useState("");
-  const [description, setDescription] = useState("");
-  const [notes, setNotes]             = useState("");
-  const [fileAttached, setFileAttached] = useState(true); // mock: file already attached
-  const [submitted, setSubmitted]     = useState(false);
+  const [description, setDescription]   = useState("");
+  const [notes, setNotes]               = useState("");
+  const [fileAttached, setFileAttached] = useState(true);
+  const [submitted, setSubmitted]       = useState(false);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -325,7 +332,7 @@ function CostForm({ onClose, onSubmit }: { onClose: () => void; onSubmit: (data:
           <div className="relative">
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => { setCategory(e.target.value); if (e.target.value !== "Other") setOtherCategory(""); }}
               required
               data-testid="select-cost-category"
               className={`${inputClass} appearance-none cursor-pointer pr-8`}
@@ -337,6 +344,32 @@ function CostForm({ onClose, onSubmit }: { onClose: () => void; onSubmit: (data:
               <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square"/></svg>
             </div>
           </div>
+
+          {/* Conditional "Other" free-text field */}
+          <AnimatePresence>
+            {category === "Other" && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.18 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-3 border-l-2 border-accent pl-3">
+                  <label className={`${labelClass} text-accent`}>Specify Cost Type *</label>
+                  <input
+                    type="text"
+                    value={otherCategory}
+                    onChange={(e) => setOtherCategory(e.target.value)}
+                    placeholder="e.g. Drone Footage, Event Signage…"
+                    required={category === "Other"}
+                    data-testid="input-other-category"
+                    className={inputClass}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Cost value + Payment terms row */}
