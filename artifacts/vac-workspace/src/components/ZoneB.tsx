@@ -12,7 +12,7 @@ type Tab = "finance" | "timeline" | "canvas";
 const tabs: { id: Tab; label: string }[] = [
   { id: "finance",  label: "Financial Ledger"    },
   { id: "timeline", label: "Production Timeline" },
-  { id: "canvas",   label: "Creative Canvas"     },
+  { id: "canvas",   label: "Collaboration Field"  },
 ];
 
 interface PendingCost {
@@ -925,7 +925,7 @@ function CanvasPanel() {
       </div>
       <div className="absolute top-4 left-6 z-20 flex items-center gap-1.5">
         <span className="text-accent font-bold text-sm leading-none">/</span>
-        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Creative Moodboard</span>
+        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Collaborative Canvas</span>
       </div>
       <div className="relative flex-1 w-full h-full">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl h-72">
