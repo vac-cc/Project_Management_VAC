@@ -185,7 +185,7 @@ function FinancePanel({ overrun, setOverrun, drawerOpen, setDrawerOpen, pendingC
         </div>
 
         {/* Budget Breakdown — separated section */}
-        <div className="flex flex-col shrink-0 mt-6">
+        <div className="flex flex-col shrink-0 mt-6 border-t border-black/10">
 
           {/* Budget Breakdown label — thick break line + leaf green tint */}
           <div className="px-7 border-b border-border flex items-center gap-2 h-[72px] shrink-0" style={{ background: "#fff" }}>
