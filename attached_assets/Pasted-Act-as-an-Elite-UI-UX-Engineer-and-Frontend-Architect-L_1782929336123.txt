@@ -1,0 +1,17 @@
+Act as an Elite UI/UX Engineer and Frontend Architect. Let's readjust the Chat layout in Zone C to establish a clean, open, and fully synchronized communication hub. Maintain our strict sharp-cornered (rounded-none), brutalist-minimalist white aesthetic.
+
+Please execute the following precise layout and architectural updates:
+
+### 1. LAYOUT RESIZING (2/3 Page Height Expansion)
+- Resize the main container of Zone C (Chat) so it occupies exactly **2/3 (two-thirds) of the total vertical page height** (using fixed view dimensions like `h-[66vh]`, `max-h-[700px]`, or structural flex rules), giving it clear dominance over its column.
+- Keep the internal message feed container scrolling natively (`overflow-y-auto`) without causing any outer page container displacement.
+
+### 2. MINIMALIST OPEN-AIR FEED (Line & Color Cleanup)
+- **Eliminate Divider Lines:** Inspect the message rendering loop inside the chat feed. Completely remove any horizontal separator lines, borders, or layout margins that sit between individual chat messages (remove classes like `divide-y`, `border-b`, or `border-t` from the message item wrapper).
+- **Pure White Canvas Canvas Canvas:** Force the background of the ENTIRE chat container—including the background of individual messages, timestamps, and row containers—to be strictly Pure White (#FFFFFF). The feed must look like a continuous, elegant block of text on open space, with absolutely zero background fills, gray tones, or container masks.
+
+### 3. TRIPLE-POINT COLLABORATOR COLOR SYNC
+- **Lock the Avatars:** The tiny user/collaborator icons, badges, or initials displaying next to each chat message must be 100% in sync and identical to our global project identity layout.
+- Bind their colors and geometric pattern styles directly to the same source of truth used in **Zone A (Collaborators sidebar)** and **Zone B (Production Timeline task bars)**. If a collaborator has a specific brand Leaf Green or Terracotta texture assigned to them, their avatar badge inside the chat feed must render that exact same synchronized marker.
+
+Maintain razor-thin outer layout framing (`border-[1px] border-black/10`) and crisp black text alignments. Update the workspace live preview for verification.

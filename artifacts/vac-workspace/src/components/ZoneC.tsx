@@ -1,6 +1,40 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, CircleDashed, CheckCircle2, Paperclip, X } from "lucide-react";
+import { PATTERN_BANK, ASSIGNEE_PALETTE, type PatternEntry } from "../data/assigneePalette";
+
+// ── Zone C palette — extends global source of truth with "You" + "OS" entries ──
+const ZONE_C_PALETTE: Record<string, PatternEntry> = {
+  ...ASSIGNEE_PALETTE,
+  AL:  PATTERN_BANK.crosshatchTerracotta,
+  You: { name: "You", bar: { background: "#1a1a1a" }, done: { background: "#1a1a1a" }, upcoming: { background: "#1a1a1a" }, text: "#fff" },
+  OS:  { name: "OS",  bar: { background: "#1a1a1a" }, done: { background: "#1a1a1a" }, upcoming: { background: "#1a1a1a" }, text: "#fff" },
+};
+
+type ChatMessage = {
+  initials: string;
+  name: string;
+  paletteKey: string;
+  message: string;
+  isSelf: boolean;
+};
+
+const SEED_MESSAGES: ChatMessage[] = [
+  { initials: "CF", name: "Catarina F.", paletteKey: "Catarina", message: "The event layout is confirmed for the 24th.",       isSelf: false },
+  { initials: "MS", name: "Miguel S.",   paletteKey: "Miguel",   message: "Great. I'll have the sponsor decks ready by EOD.", isSelf: false },
+  { initials: "You", name: "You",        paletteKey: "You",      message: "Copy. Sending the venue brief now.",                isSelf: true  },
+  { initials: "CF", name: "Catarina F.", paletteKey: "Catarina", message: "Perfect, thanks!",                                 isSelf: false },
+];
+
+// Collaborator list — synced with Zone A & Zone B
+const MENTION_LIST = [
+  { initials: "CF", name: "Catarina" },
+  { initials: "MS", name: "Miguel"   },
+  { initials: "JP", name: "JP"       },
+  { initials: "AL", name: "Ana"      },
+  { initials: "MT", name: "Marta"    },
+  { initials: "TG", name: "Tiago"    },
+];
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -11,30 +45,13 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Collaborator list — synced with Zone A
-const MENTION_LIST = [
-  { initials: "CF", name: "Catarina" },
-  { initials: "MS", name: "Miguel"   },
-  { initials: "JP", name: "JP"       },
-  { initials: "AL", name: "Ana"      },
-  { initials: "MT", name: "Marta"    },
-  { initials: "TG", name: "Tiago"    },
-];
-
-const SEED_MESSAGES = [
-  { initials: "CF", name: "Catarina F.", bg: "bg-accent text-white",     message: "The event layout is confirmed for the 24th.",       isSelf: false },
-  { initials: "MS", name: "Miguel S.",   bg: "bg-primary text-white",    message: "Great. I'll have the sponsor decks ready by EOD.", isSelf: false },
-  { initials: "You", name: "You",        bg: "bg-foreground text-white", message: "Copy. Sending the venue brief now.",                isSelf: true  },
-  { initials: "CF", name: "Catarina F.", bg: "bg-accent text-white",     message: "Perfect, thanks!",                                 isSelf: false },
-];
-
 interface ZoneCProps {
   pendingCount: number;
 }
 
 export default function ZoneC({ pendingCount }: ZoneCProps) {
   const [approvalRequested, setApprovalRequested] = useState(false);
-  const [localMessages, setLocalMessages]         = useState(SEED_MESSAGES);
+  const [localMessages, setLocalMessages]         = useState<ChatMessage[]>(SEED_MESSAGES);
   const [inputValue, setInputValue]               = useState("");
   const [mentionQuery, setMentionQuery]           = useState<string | null>(null);
   const [attachedFile, setAttachedFile]           = useState<File | null>(null);
@@ -57,7 +74,7 @@ export default function ZoneC({ pendingCount }: ZoneCProps) {
         {
           initials: "OS",
           name: "VĀC OS",
-          bg: "bg-foreground text-white",
+          paletteKey: "OS",
           message: `Cost submission received. Routing to Catarina Figueiredo for approval. (#${String(pendingCount).padStart(3, "0")})`,
           isSelf: false,
         },
@@ -66,47 +83,39 @@ export default function ZoneC({ pendingCount }: ZoneCProps) {
     }
   }, [pendingCount]);
 
-  // ── @mention logic ───────────────────────────────────────────
+  // ── @mention logic ──────────────────────────────────────────
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setInputValue(val);
     const atIdx = val.lastIndexOf("@");
     if (atIdx !== -1) {
       const fragment = val.slice(atIdx + 1);
-      if (!fragment.includes(" ")) {
-        setMentionQuery(fragment);
-        return;
-      }
+      if (!fragment.includes(" ")) { setMentionQuery(fragment); return; }
     }
     setMentionQuery(null);
   };
 
   const handleMentionSelect = (name: string) => {
     const atIdx = inputValue.lastIndexOf("@");
-    const next = inputValue.slice(0, atIdx) + "@" + name + " ";
-    setInputValue(next);
+    setInputValue(inputValue.slice(0, atIdx) + "@" + name + " ");
     setMentionQuery(null);
     inputRef.current?.focus();
   };
 
   const filteredMentions = mentionQuery === null
     ? []
-    : MENTION_LIST.filter((m) =>
-        m.name.toLowerCase().startsWith(mentionQuery.toLowerCase())
-      );
+    : MENTION_LIST.filter((m) => m.name.toLowerCase().startsWith(mentionQuery.toLowerCase()));
 
-  // ── Send logic ───────────────────────────────────────────────
+  // ── Send logic ──────────────────────────────────────────────
   const handleSend = () => {
     const text = inputValue.trim();
     if (!text && !attachedFile) return;
     const msgText = attachedFile
-      ? text
-        ? `${text} [📎 ${attachedFile.name}]`
-        : `[📎 ${attachedFile.name}]`
+      ? text ? `${text} [📎 ${attachedFile.name}]` : `[📎 ${attachedFile.name}]`
       : text;
     setLocalMessages((prev) => [
       ...prev,
-      { initials: "You", name: "You", bg: "bg-foreground text-white", message: msgText, isSelf: true },
+      { initials: "You", name: "You", paletteKey: "You", message: msgText, isSelf: true },
     ]);
     setInputValue("");
     setAttachedFile(null);
@@ -114,29 +123,30 @@ export default function ZoneC({ pendingCount }: ZoneCProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") { e.preventDefault(); handleSend(); }
+    if (e.key === "Enter")  { e.preventDefault(); handleSend(); }
     if (e.key === "Escape") setMentionQuery(null);
   };
 
-  // ── File attachment ──────────────────────────────────────────
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] ?? null;
-    setAttachedFile(file);
+    setAttachedFile(e.target.files?.[0] ?? null);
     e.target.value = "";
   };
+
+  const cfPalette = ZONE_C_PALETTE["Catarina"];
+  const msPalette = ZONE_C_PALETTE["Miguel"];
 
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.4, delay: 0.3 }}
-      className="w-[300px] h-full border-l border-border bg-background flex flex-col shrink-0"
+      className="w-[300px] h-full border-l border-border bg-white flex flex-col shrink-0"
     >
-      {/* ── Project Chat — capped at 1/3 viewport height ── */}
-      <div className="flex flex-col border-b border-border" style={{ maxHeight: "33vh", minHeight: 0 }}>
+      {/* ── Project Chat — 2/3 viewport height ── */}
+      <div className="flex flex-col border-b border-border" style={{ maxHeight: "66vh", minHeight: 0 }}>
 
         {/* Header */}
-        <div className="px-5 py-4 border-b border-border flex items-center justify-between shrink-0">
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between shrink-0 bg-white">
           <SectionLabel>Project Chat</SectionLabel>
           <div className="flex items-center gap-2">
             <AnimatePresence>
@@ -155,15 +165,22 @@ export default function ZoneC({ pendingCount }: ZoneCProps) {
                 </motion.span>
               )}
             </AnimatePresence>
+            {/* Header mini-avatars — palette-synced */}
             <div className="flex -space-x-1">
-              <div className="w-5 h-5 bg-accent border border-white flex items-center justify-center text-[8px] font-bold text-white">CF</div>
-              <div className="w-5 h-5 bg-primary border border-white flex items-center justify-center text-[8px] font-bold text-white">MS</div>
+              <div
+                className="w-5 h-5 border border-white flex items-center justify-center text-[8px] font-bold shrink-0"
+                style={{ ...cfPalette.bar, color: cfPalette.text }}
+              >CF</div>
+              <div
+                className="w-5 h-5 border border-white flex items-center justify-center text-[8px] font-bold shrink-0"
+                style={{ ...msPalette.bar, color: msPalette.text }}
+              >MS</div>
             </div>
           </div>
         </div>
 
-        {/* Message feed — scrollable */}
-        <div className="flex-1 overflow-y-auto flex flex-col divide-y divide-border min-h-0">
+        {/* Message feed — open-air, no dividers, pure white */}
+        <div className="flex-1 overflow-y-auto flex flex-col min-h-0 bg-white">
           <AnimatePresence initial={false}>
             {localMessages.map((msg, i) => (
               <motion.div
@@ -180,7 +197,7 @@ export default function ZoneC({ pendingCount }: ZoneCProps) {
         </div>
 
         {/* Input zone */}
-        <div className="border-t border-border px-4 pt-3 pb-3 shrink-0">
+        <div className="border-t border-border px-4 pt-3 pb-3 shrink-0 bg-white">
 
           {/* File attachment badge */}
           <AnimatePresence>
@@ -196,17 +213,14 @@ export default function ZoneC({ pendingCount }: ZoneCProps) {
                 <span className="text-[9px] font-bold text-foreground truncate max-w-[180px]">
                   {attachedFile.name}
                 </span>
-                <button
-                  onClick={() => setAttachedFile(null)}
-                  className="text-muted-foreground hover:text-foreground transition-colors ml-0.5 shrink-0"
-                >
+                <button onClick={() => setAttachedFile(null)} className="text-muted-foreground hover:text-foreground transition-colors ml-0.5 shrink-0">
                   <X size={9} />
                 </button>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* @mention dropdown */}
+          {/* @mention dropdown + input row */}
           <div className="relative">
             {mentionQuery !== null && filteredMentions.length > 0 && (
               <div className="absolute bottom-full left-0 right-0 mb-1 border border-black/10 bg-white z-50 shadow-lg">
@@ -216,7 +230,8 @@ export default function ZoneC({ pendingCount }: ZoneCProps) {
                     onMouseDown={(e) => { e.preventDefault(); handleMentionSelect(m.name); }}
                     className="w-full flex items-center gap-2 px-3 py-2 hover:bg-muted text-left border-b border-black/6 last:border-0 transition-colors"
                   >
-                    <span className="w-5 h-5 bg-foreground text-white text-[8px] font-bold flex items-center justify-center shrink-0">
+                    <span className="w-5 h-5 text-[8px] font-bold flex items-center justify-center shrink-0"
+                      style={{ ...ZONE_C_PALETTE[m.name]?.bar ?? { background: "#1a1a1a" }, color: ZONE_C_PALETTE[m.name]?.text ?? "#fff" }}>
                       {m.initials}
                     </span>
                     <span className="text-[11px] font-bold text-foreground">@{m.name}</span>
@@ -225,16 +240,8 @@ export default function ZoneC({ pendingCount }: ZoneCProps) {
               </div>
             )}
 
-            {/* Input row */}
             <div className="flex border border-border">
-              {/* Hidden file input */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                onChange={handleFileSelect}
-              />
-              {/* Paperclip button */}
+              <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileSelect} />
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="w-9 border-r border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
@@ -242,7 +249,6 @@ export default function ZoneC({ pendingCount }: ZoneCProps) {
               >
                 <Paperclip size={11} />
               </button>
-              {/* Text input */}
               <input
                 ref={inputRef}
                 type="text"
@@ -253,7 +259,6 @@ export default function ZoneC({ pendingCount }: ZoneCProps) {
                 data-testid="input-chat-message"
                 className="flex-1 bg-white px-3 py-2.5 text-xs focus:outline-none placeholder:text-muted-foreground font-sans text-foreground min-w-0"
               />
-              {/* Send button */}
               <button
                 onClick={handleSend}
                 data-testid="button-send-message"
@@ -266,8 +271,8 @@ export default function ZoneC({ pendingCount }: ZoneCProps) {
         </div>
       </div>
 
-      {/* ── Approval Request — grows to fill remaining space ── */}
-      <div className="flex flex-col divide-y divide-border flex-1 min-h-0">
+      {/* ── Approval Request ── */}
+      <div className="flex flex-col divide-y divide-border flex-1 min-h-0 bg-white">
         <div className="px-5 py-4 flex items-center justify-between shrink-0">
           <SectionLabel>Approval Request</SectionLabel>
           {approvalRequested ? (
@@ -319,17 +324,31 @@ export default function ZoneC({ pendingCount }: ZoneCProps) {
   );
 }
 
-function MessageRow({ initials, name, message, bg, isSelf, isSystem = false }: {
-  initials: string; name: string; message: string; bg: string; isSelf: boolean; isSystem?: boolean;
+function MessageRow({ initials, name, paletteKey, message, isSelf, isSystem = false }: {
+  initials: string;
+  name: string;
+  paletteKey: string;
+  message: string;
+  isSelf: boolean;
+  isSystem?: boolean;
 }) {
+  const palette = ZONE_C_PALETTE[paletteKey] ?? ZONE_C_PALETTE["OS"];
   return (
-    <div className={`px-5 py-3 flex gap-2.5 ${isSelf ? "bg-muted/60 flex-row-reverse" : isSystem ? "bg-primary/5 border-l-2 border-l-primary" : "bg-white"}`}>
-      <div className={`w-6 h-6 ${bg} flex items-center justify-center text-[9px] font-bold shrink-0`}>
+    <div className={`px-5 py-3 flex gap-2.5 bg-white ${isSelf ? "flex-row-reverse" : ""}`}>
+      {/* Palette-synced avatar square */}
+      <div
+        className="w-6 h-6 flex items-center justify-center text-[9px] font-bold shrink-0"
+        style={{ ...palette.bar, color: palette.text }}
+      >
         {initials}
       </div>
       <div className={`flex flex-col flex-1 min-w-0 ${isSelf ? "items-end" : "items-start"}`}>
-        <span className={`text-[9px] font-bold uppercase tracking-wider mb-0.5 ${isSystem ? "text-primary" : "text-muted-foreground"}`}>{name}</span>
-        <p className={`text-xs leading-relaxed break-words ${isSystem ? "text-primary font-medium" : "text-foreground"}`}>{message}</p>
+        <span className={`text-[9px] font-bold uppercase tracking-wider mb-0.5 ${isSystem ? "text-primary" : "text-muted-foreground"}`}>
+          {name}
+        </span>
+        <p className={`text-xs leading-relaxed break-words ${isSystem ? "text-primary font-medium" : "text-foreground"}`}>
+          {message}
+        </p>
       </div>
     </div>
   );
