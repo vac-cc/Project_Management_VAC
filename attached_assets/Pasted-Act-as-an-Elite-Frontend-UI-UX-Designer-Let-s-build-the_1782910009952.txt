@@ -1,0 +1,20 @@
+Act as an Elite Frontend UI/UX Designer. Let's build the interactive cost submission layout inside Zone B (Financial Ledger Tab) following our strict brutalist-minimalist aesthetic: Pure White canvas, razor-thin black borders, sharp 90-degree corners (rounded-none), and clean condensed typography.
+
+### 1. THE INLINE "ADD COST" UI TRIGGER
+- Inside the Financial Ledger table, right under the Line Items row, add a clean, minimalist "+ Add Cost to be Approved" button. 
+- **The Interaction Rule:** Clicking this button must NOT change the current page view or switch tabs. Instead, it must slide open a beautiful, non-disruptive Overlaid Side Panel (Slide-over Drawer) or an Expandable Inline Form on the right side of Zone B, keeping the main ledger matrix visible in the background.
+
+### 2. THE HIGH-CONTRAST COMPULSORY FORM LAYOUT
+The submission form must be styled like a premium architectural spec-sheet (sharp boxes, thin lines, no rounded edges). Implement fields for the following mandatory production variables:
+- **Type of Cost / Category:** A sharp dropdown selector (e.g., Scenography, Videography, Catering, Permits, Logistics).
+- **Cost Value (€):** A crisp, bold input field for the currency amount.
+- **Payment Terms:** A structured input/selector (e.g., 50% Advance / 50% On Delivery, Net 30, Immediate).
+- **Service/Product Description:** A clean text-area field where the team member explains exactly what the cost is, optimized for project management clarity so all active freelancers/directors immediately understand its operational purpose.
+- **The Quote Upload (Visual Mockup Component):** A rectangular, dashed-border dropzone slot that reads "Upload Quote PDF". Show a mock active state of a file already attached (e.g., "orçamento_cenografia_v1.pdf") with a tiny sharp trash icon to delete.
+- **Additional Vital Notes:** A final open field for extra project-critical info (e.g., delivery dates or technical specifications).
+
+### 3. FORM ACTIONS & STATE LIFECYCLE
+- At the bottom of the form, place a prominent, sharp-cornered **"Submit for Approval"** button.
+- **Visual Feedback State:** Clicking "Submit" must close the form smoothly, inject the new line item into the ledger table with a "Pending Approval" state, and display a subtle notification badge in the comms hub showing the automated alert routing state.
+
+Ensure all new input elements use `rounded-none`, high-contrast text, and thin borders (`border-[1px] border-black/10`). Update the preview so I can test this fluid input workflow.

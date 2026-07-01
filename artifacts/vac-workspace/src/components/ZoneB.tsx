@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MousePointer2, Square, Type, Image as ImageIcon, ZoomIn, ZoomOut } from "lucide-react";
+import {
+  MousePointer2, Square, Type, Image as ImageIcon,
+  ZoomIn, ZoomOut, X, Trash2, FileText, Plus, Upload
+} from "lucide-react";
 
 type Tab = "finance" | "timeline" | "canvas";
 
@@ -10,16 +13,36 @@ const tabs: { id: Tab; label: string }[] = [
   { id: "canvas",   label: "Creative Canvas"     },
 ];
 
-export default function ZoneB() {
+interface PendingCost {
+  id: number;
+  category: string;
+  description: string;
+  value: number;
+  paymentTerms: string;
+}
+
+interface ZoneBProps {
+  onCostSubmitted: () => void;
+}
+
+export default function ZoneB({ onCostSubmitted }: ZoneBProps) {
   const [activeTab, setActiveTab] = useState<Tab>("finance");
   const [overrun, setOverrun] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [pendingCosts, setPendingCosts] = useState<PendingCost[]>([]);
+
+  function handleCostSubmitted(cost: PendingCost) {
+    setPendingCosts((prev) => [...prev, cost]);
+    setDrawerOpen(false);
+    onCostSubmitted();
+  }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.2 }}
-      className="flex-1 h-full flex flex-col min-w-0 bg-white"
+      className="flex-1 h-full flex flex-col min-w-0 bg-white relative overflow-hidden"
     >
       {/* Tab Bar */}
       <div className="border-b border-border flex items-end px-7 pt-6 shrink-0">
@@ -28,7 +51,7 @@ export default function ZoneB() {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => { setActiveTab(tab.id); setDrawerOpen(false); }}
               data-testid={`tab-${tab.id}`}
               className={`flex items-center gap-1.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] border-b-2 -mb-px transition-all duration-150 ${
                 isActive
@@ -46,7 +69,17 @@ export default function ZoneB() {
       {/* Tab Content */}
       <div className="flex-1 min-h-0 overflow-hidden relative">
         <AnimatePresence mode="wait">
-          {activeTab === "finance"  && <FinancePanel  key="finance"  overrun={overrun} setOverrun={setOverrun} />}
+          {activeTab === "finance" && (
+            <FinancePanel
+              key="finance"
+              overrun={overrun}
+              setOverrun={setOverrun}
+              drawerOpen={drawerOpen}
+              setDrawerOpen={setDrawerOpen}
+              pendingCosts={pendingCosts}
+              onCostSubmitted={handleCostSubmitted}
+            />
+          )}
           {activeTab === "timeline" && <TimelinePanel key="timeline" />}
           {activeTab === "canvas"   && <CanvasPanel   key="canvas"   />}
         </AnimatePresence>
@@ -56,135 +89,388 @@ export default function ZoneB() {
 }
 
 /* ─── Finance Panel ─────────────────────────────────────── */
-function FinancePanel({ overrun, setOverrun }: { overrun: boolean; setOverrun: (v: boolean) => void }) {
+interface FinancePanelProps {
+  overrun: boolean;
+  setOverrun: (v: boolean) => void;
+  drawerOpen: boolean;
+  setDrawerOpen: (v: boolean) => void;
+  pendingCosts: PendingCost[];
+  onCostSubmitted: (cost: PendingCost) => void;
+}
+
+function FinancePanel({ overrun, setOverrun, drawerOpen, setDrawerOpen, pendingCosts, onCostSubmitted }: FinancePanelProps) {
+  const nextId = useRef(100);
+
+  const fixedExpenses = [
+    { label: "Production Crew",     allocated: 18000, spent: 14200, pct: 79 },
+    { label: "Venue & Logistics",   allocated: 12000, spent: 10800, pct: 90 },
+    { label: "Creative & Design",   allocated: 8000,  spent: 4900,  pct: 61 },
+    { label: "Contingency Reserve", allocated: 7000,  spent: 1600,  pct: 23 },
+  ];
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -6 }}
-      transition={{ duration: 0.18 }}
-      className="absolute inset-0 flex flex-col overflow-y-auto"
-    >
-      {/* Report header */}
-      <div className="flex items-center justify-between px-7 py-5 border-b border-border">
+    <div className="absolute inset-0 flex overflow-hidden">
+
+      {/* ── Main Ledger (always visible) ── */}
+      <div className="flex-1 flex flex-col overflow-y-auto min-w-0">
+
+        {/* Report header */}
+        <div className="flex items-center justify-between px-7 py-5 border-b border-border shrink-0">
+          <div>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Project Financial Report</p>
+            <p className="text-xs text-foreground font-medium mt-0.5">Beach Pizza Cascais · Brand Strategy & Events</p>
+          </div>
+          <button
+            onClick={() => setOverrun(!overrun)}
+            data-testid="button-toggle-overrun"
+            className={`px-4 py-2 text-[10px] font-bold uppercase tracking-wider border transition-all duration-150 ${
+              overrun
+                ? "bg-primary text-white border-primary"
+                : "bg-white text-foreground border-border hover:border-foreground"
+            }`}
+          >
+            {overrun ? "Reset State" : "Simulate Overrun"}
+          </button>
+        </div>
+
+        {/* Budget Matrix */}
+        <div className="border-b border-border shrink-0">
+          <div className="grid grid-cols-4 border-b border-border bg-muted">
+            <ColHeader>Total Client Approved Budget</ColHeader>
+            <ColHeader border>Total Estimated Costs</ColHeader>
+            <ColHeader border>Realized Costs</ColHeader>
+            <ColHeader border>Profit Margin Tracker</ColHeader>
+          </div>
+
+          <AnimatePresence mode="wait">
+            {overrun ? (
+              <motion.div key="overrun" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="bg-primary flex items-center justify-center py-9 px-8">
+                <div className="text-center">
+                  <p className="text-base font-bold uppercase tracking-widest text-white">Critical: Budget Ceiling Exceeded</p>
+                  <p className="text-white/80 text-xs mt-2 tracking-wide">€47,200 realized vs €45,000 approved</p>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div key="normal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="grid grid-cols-4">
+                <DataCell><BigNum>€45,000</BigNum><SubLabel>Approved</SubLabel></DataCell>
+                <DataCell border><BigNum muted>€38,200</BigNum><SubLabel>Estimated</SubLabel></DataCell>
+                <DataCell border><BigNum>€31,500</BigNum><SubLabel>Realized</SubLabel></DataCell>
+                <DataCell border>
+                  <div className="flex items-baseline gap-1"><BigNum green>30%</BigNum></div>
+                  <div className="w-full h-0.5 bg-border mt-3 mb-1">
+                    <div className="h-full bg-accent" style={{ width: "30%" }} />
+                  </div>
+                  <SubLabel>Healthy margin</SubLabel>
+                </DataCell>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Secondary metrics */}
+        <div className="grid grid-cols-3 divide-x divide-border border-b border-border shrink-0">
+          <MetricCell label="Budget Utilization" value="70%"     sub="€31,500 of €45,000"       accent />
+          <MetricCell label="Cost Variance"       value="+€6,700" sub="Estimated vs Realized"            />
+          <MetricCell label="Invoiced to Date"    value="€28,000" sub="62% of approved budget"          />
+        </div>
+
+        {/* Expense Breakdown */}
+        <div className="flex flex-col shrink-0">
+          <div className="grid grid-cols-[1fr_auto_auto_160px] px-7 py-3 border-b border-border bg-muted">
+            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Line Item</p>
+            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em] w-24 text-right">Spent</p>
+            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em] w-24 text-right mr-4">Allocated</p>
+            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Utilization</p>
+          </div>
+
+          {fixedExpenses.map((row) => (
+            <ExpenseRow key={row.label} {...row} />
+          ))}
+
+          {/* Pending cost rows injected on submit */}
+          <AnimatePresence>
+            {pendingCosts.map((cost) => (
+              <motion.div
+                key={cost.id}
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+                className="grid grid-cols-[1fr_auto_auto_160px] items-center px-7 py-3.5 border-b border-border bg-accent/5"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-medium text-foreground">{cost.category} — {cost.description.slice(0, 30)}{cost.description.length > 30 ? "…" : ""}</span>
+                  <span className="text-[9px] font-bold text-primary border border-primary px-1.5 py-0.5 uppercase tracking-wider">Pending Approval</span>
+                </div>
+                <span className="text-xs text-foreground font-medium w-24 text-right">€{cost.value.toLocaleString()}</span>
+                <span className="text-xs text-muted-foreground w-24 text-right mr-4">/ —</span>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-0.5 bg-border" />
+                  <span className="text-[10px] font-bold text-muted-foreground w-7 text-right">—</span>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          {/* + Add Cost trigger */}
+          <button
+            onClick={() => setDrawerOpen(true)}
+            data-testid="button-add-cost"
+            className="flex items-center gap-2 px-7 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-wider hover:text-foreground hover:bg-muted transition-colors border-b border-border w-full text-left group"
+          >
+            <span className="w-5 h-5 border border-current flex items-center justify-center group-hover:border-foreground group-hover:bg-foreground group-hover:text-white transition-all">
+              <Plus size={11} />
+            </span>
+            Add Cost to be Approved
+          </button>
+        </div>
+      </div>
+
+      {/* ── Slide-over Drawer ── */}
+      <AnimatePresence>
+        {drawerOpen && (
+          <>
+            {/* Subtle backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/10 z-10"
+              onClick={() => setDrawerOpen(false)}
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "tween", duration: 0.28, ease: [0.25, 0, 0, 1] }}
+              className="absolute top-0 right-0 h-full w-[420px] bg-white border-l border-black/10 z-20 flex flex-col shadow-2xl overflow-hidden"
+            >
+              <CostForm
+                onClose={() => setDrawerOpen(false)}
+                onSubmit={(data) => {
+                  onCostSubmitted({ ...data, id: nextId.current++ });
+                }}
+              />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ─── Cost Submission Form ─────────────────────────────── */
+const CATEGORIES = ["Scenography", "Videography", "Photography", "Catering", "Permits", "Logistics", "Talent / Casting", "Music & Licensing", "Post-Production", "Other"];
+const PAYMENT_TERMS = ["50% Advance / 50% On Delivery", "100% Advance", "Net 30", "Net 15", "Immediate", "Milestone-Based"];
+
+interface CostFormData {
+  category: string;
+  value: number;
+  paymentTerms: string;
+  description: string;
+  notes: string;
+}
+
+function CostForm({ onClose, onSubmit }: { onClose: () => void; onSubmit: (data: CostFormData) => void }) {
+  const [category, setCategory]       = useState("");
+  const [costValue, setCostValue]     = useState("");
+  const [paymentTerms, setPaymentTerms] = useState("");
+  const [description, setDescription] = useState("");
+  const [notes, setNotes]             = useState("");
+  const [fileAttached, setFileAttached] = useState(true); // mock: file already attached
+  const [submitted, setSubmitted]     = useState(false);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!category || !costValue) return;
+    setSubmitted(true);
+    setTimeout(() => {
+      onSubmit({
+        category: category || "Uncategorised",
+        value: parseFloat(costValue) || 0,
+        paymentTerms,
+        description,
+        notes,
+      });
+    }, 400);
+  }
+
+  const inputClass = "w-full border border-black/10 bg-white px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground font-sans";
+  const labelClass = "text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em] mb-1.5 block";
+
+  return (
+    <>
+      {/* Drawer header */}
+      <div className="flex items-center justify-between px-6 py-5 border-b border-black/10 shrink-0">
         <div>
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Project Financial Report</p>
-          <p className="text-xs text-foreground font-medium mt-0.5">Beach Pizza Cascais · Brand Strategy & Events</p>
+          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Financial Ledger</p>
+          <h3 className="text-sm font-bold text-foreground tracking-tight mt-0.5">Submit Cost for Approval</h3>
         </div>
         <button
-          onClick={() => setOverrun(!overrun)}
-          data-testid="button-toggle-overrun"
-          className={`px-4 py-2 text-[10px] font-bold uppercase tracking-wider border transition-all duration-150 ${
-            overrun
-              ? "bg-primary text-white border-primary"
-              : "bg-white text-foreground border-border hover:border-foreground"
-          }`}
+          onClick={onClose}
+          data-testid="button-close-drawer"
+          className="w-7 h-7 border border-black/10 flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
         >
-          {overrun ? "Reset State" : "Simulate Overrun"}
+          <X size={13} />
         </button>
       </div>
 
-      {/* Budget Matrix — full-width architectural grid */}
-      <div className="border-b border-border">
-        {/* Column headers */}
-        <div className="grid grid-cols-4 border-b border-border bg-muted">
-          <ColHeader>Total Client Approved Budget</ColHeader>
-          <ColHeader border>Total Estimated Costs</ColHeader>
-          <ColHeader border>Realized Costs</ColHeader>
-          <ColHeader border>Profit Margin Tracker</ColHeader>
+      {/* Form body */}
+      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto flex flex-col divide-y divide-black/5">
+
+        {/* Category */}
+        <div className="px-6 py-5">
+          <label className={labelClass}>Type of Cost / Category *</label>
+          <div className="relative">
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              required
+              data-testid="select-cost-category"
+              className={`${inputClass} appearance-none cursor-pointer pr-8`}
+            >
+              <option value="" disabled>Select category…</option>
+              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
+              <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square"/></svg>
+            </div>
+          </div>
         </div>
 
-        {/* Data row */}
-        <AnimatePresence mode="wait">
-          {overrun ? (
-            <motion.div
-              key="overrun"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="bg-primary flex items-center justify-center py-9 px-8"
-            >
-              <div className="text-center">
-                <p className="text-base font-bold uppercase tracking-widest text-white">Critical: Budget Ceiling Exceeded</p>
-                <p className="text-white/80 text-xs mt-2 tracking-wide">€47,200 realized vs €45,000 approved</p>
+        {/* Cost value + Payment terms row */}
+        <div className="px-6 py-5 grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelClass}>Cost Value (€) *</label>
+            <div className="relative">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">€</span>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={costValue}
+                onChange={(e) => setCostValue(e.target.value)}
+                placeholder="0.00"
+                required
+                data-testid="input-cost-value"
+                className={`${inputClass} pl-7 font-bold text-base`}
+              />
+            </div>
+          </div>
+          <div>
+            <label className={labelClass}>Payment Terms</label>
+            <div className="relative">
+              <select
+                value={paymentTerms}
+                onChange={(e) => setPaymentTerms(e.target.value)}
+                data-testid="select-payment-terms"
+                className={`${inputClass} appearance-none cursor-pointer pr-8 text-xs`}
+              >
+                <option value="">Select terms…</option>
+                {PAYMENT_TERMS.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square"/></svg>
               </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="normal"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="grid grid-cols-4"
-            >
-              <DataCell>
-                <BigNum>€45,000</BigNum>
-                <SubLabel>Approved</SubLabel>
-              </DataCell>
-              <DataCell border>
-                <BigNum muted>€38,200</BigNum>
-                <SubLabel>Estimated</SubLabel>
-              </DataCell>
-              <DataCell border>
-                <BigNum>€31,500</BigNum>
-                <SubLabel>Realized</SubLabel>
-              </DataCell>
-              <DataCell border>
-                <div className="flex items-baseline gap-1">
-                  <BigNum green>30%</BigNum>
-                </div>
-                <div className="w-full h-1 bg-border mt-3 mb-1">
-                  <div className="h-full bg-accent" style={{ width: "30%" }} />
-                </div>
-                <SubLabel>Healthy margin</SubLabel>
-              </DataCell>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Secondary metrics */}
-      <div className="grid grid-cols-3 divide-x divide-border border-b border-border">
-        <MetricCell label="Budget Utilization" value="70%" sub="€31,500 of €45,000" accent />
-        <MetricCell label="Cost Variance"       value="+€6,700" sub="Estimated vs Realized" />
-        <MetricCell label="Invoiced to Date"    value="€28,000" sub="62% of approved budget" />
-      </div>
-
-      {/* Expense Breakdown */}
-      <div className="flex flex-col">
-        <div className="grid grid-cols-[1fr_auto_auto_160px] px-7 py-3 border-b border-border bg-muted">
-          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Line Item</p>
-          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em] w-24 text-right">Spent</p>
-          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em] w-24 text-right mr-4">Allocated</p>
-          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Utilization</p>
+            </div>
+          </div>
         </div>
-        {[
-          { label: "Production Crew",      allocated: 18000, spent: 14200, pct: 79 },
-          { label: "Venue & Logistics",    allocated: 12000, spent: 10800, pct: 90 },
-          { label: "Creative & Design",    allocated: 8000,  spent: 4900,  pct: 61 },
-          { label: "Contingency Reserve",  allocated: 7000,  spent: 1600,  pct: 23 },
-        ].map((row) => (
-          <ExpenseRow key={row.label} {...row} />
-        ))}
+
+        {/* Description */}
+        <div className="px-6 py-5">
+          <label className={labelClass}>Service / Product Description</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Describe exactly what this cost covers, its operational purpose, and key deliverables so all team members immediately understand the scope…"
+            rows={4}
+            data-testid="textarea-description"
+            className={`${inputClass} resize-none leading-relaxed`}
+          />
+        </div>
+
+        {/* Quote Upload */}
+        <div className="px-6 py-5">
+          <label className={labelClass}>Quote / Orçamento PDF</label>
+          {fileAttached ? (
+            <div className="border border-black/10 px-4 py-3 flex items-center gap-3 bg-accent/5">
+              <FileText size={14} className="text-accent shrink-0" />
+              <span className="text-xs font-medium text-foreground flex-1 truncate">orçamento_cenografia_v1.pdf</span>
+              <span className="text-[9px] text-accent font-bold uppercase tracking-wider border border-accent/30 px-1.5 py-0.5">Attached</span>
+              <button
+                type="button"
+                onClick={() => setFileAttached(false)}
+                data-testid="button-remove-file"
+                className="text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Trash2 size={12} />
+              </button>
+            </div>
+          ) : (
+            <label
+              data-testid="dropzone-quote"
+              className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-black/15 px-4 py-7 cursor-pointer hover:border-foreground hover:bg-muted transition-all"
+            >
+              <Upload size={16} className="text-muted-foreground" />
+              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Upload Quote PDF</span>
+              <span className="text-[10px] text-muted-foreground">Click or drag file here</span>
+              <input type="file" accept=".pdf" className="hidden" onChange={() => setFileAttached(true)} />
+            </label>
+          )}
+        </div>
+
+        {/* Additional Notes */}
+        <div className="px-6 py-5">
+          <label className={labelClass}>Additional Notes</label>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Delivery dates, technical specs, vendor contacts, special conditions, or any project-critical context…"
+            rows={3}
+            data-testid="textarea-notes"
+            className={`${inputClass} resize-none leading-relaxed`}
+          />
+        </div>
+      </form>
+
+      {/* Drawer footer */}
+      <div className="px-6 py-5 border-t border-black/10 shrink-0">
+        <button
+          onClick={handleSubmit}
+          disabled={submitted}
+          data-testid="button-submit-cost"
+          className={`w-full py-3.5 text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-200 ${
+            submitted
+              ? "bg-accent text-white cursor-default"
+              : "bg-foreground text-white hover:bg-accent"
+          }`}
+        >
+          {submitted ? (
+            <><span className="w-1.5 h-1.5 bg-white animate-pulse" />Submitting…</>
+          ) : (
+            "Submit for Approval"
+          )}
+        </button>
+        <p className="text-[9px] text-muted-foreground text-center mt-3 uppercase tracking-wider">
+          Routed to Catarina Figueiredo · Creative Director
+        </p>
       </div>
-    </motion.div>
+    </>
   );
 }
 
 /* ─── Timeline Panel ─────────────────────────────────────── */
 function TimelinePanel() {
   const phases = [
-    { id: "pre",      label: "Pre-production", start: 0,  width: 20,   status: "done",     dates: "Mar 1 – Mar 21"  },
-    { id: "prod",     label: "Production",     start: 20, width: 38,   status: "active",   dates: "Mar 22 – May 2", progress: 40 },
-    { id: "review",   label: "Review",         start: 58, width: 24,   status: "upcoming", dates: "May 3 – May 24"  },
-    { id: "delivery", label: "Delivery",       start: 82, width: 18,   status: "upcoming", dates: "May 25 – Jun 8"  },
+    { id: "pre",      label: "Pre-production", start: 0,  width: 20, status: "done",     dates: "Mar 1 – Mar 21"  },
+    { id: "prod",     label: "Production",     start: 20, width: 38, status: "active",   dates: "Mar 22 – May 2", progress: 40 },
+    { id: "review",   label: "Review",         start: 58, width: 24, status: "upcoming", dates: "May 3 – May 24"  },
+    { id: "delivery", label: "Delivery",       start: 82, width: 18, status: "upcoming", dates: "May 25 – Jun 8"  },
   ];
-
   return (
     <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -6 }}
+      initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
       transition={{ duration: 0.18 }}
       className="absolute inset-0 flex flex-col overflow-y-auto"
     >
@@ -198,94 +484,70 @@ function TimelinePanel() {
           In Production
         </span>
       </div>
-
-      {/* Gantt */}
       <div className="px-7 py-6 border-b border-border">
         <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em] mb-4">Gantt — Q1/Q2 2025</p>
         <div className="flex text-[9px] text-muted-foreground font-bold uppercase tracking-wider mb-2">
-          {["Mar", "Apr", "May", "Jun"].map((m) => (
+          {["Mar","Apr","May","Jun"].map((m) => (
             <div key={m} className="flex-1 border-l border-border pl-2">{m}</div>
           ))}
         </div>
         <div className="relative h-9 bg-muted border border-border overflow-hidden">
           {phases.map((phase) => (
-            <div
-              key={phase.id}
+            <div key={phase.id}
               className={`absolute top-0 h-full flex items-center px-2.5 border-r border-border ${
-                phase.status === "done"   ? "bg-accent/15" :
-                phase.status === "active" ? "bg-primary/10" : ""
+                phase.status==="done" ? "bg-accent/15" : phase.status==="active" ? "bg-primary/10" : ""
               }`}
-              style={{ left: `${phase.start}%`, width: `${phase.width}%` }}
+              style={{ left:`${phase.start}%`, width:`${phase.width}%` }}
             >
-              {phase.status === "active" && "progress" in phase && (
-                <div className="absolute left-0 top-0 h-full bg-primary/20 border-r border-primary/40"
-                  style={{ width: `${phase.progress}%` }} />
+              {"progress" in phase && phase.status==="active" && (
+                <div className="absolute left-0 top-0 h-full bg-primary/20 border-r border-primary/40" style={{ width:`${phase.progress}%` }} />
               )}
               <span className={`relative z-10 text-[9px] font-bold uppercase tracking-wider ${
-                phase.status === "done" ? "text-accent" :
-                phase.status === "active" ? "text-primary" :
-                "text-muted-foreground"
+                phase.status==="done" ? "text-accent" : phase.status==="active" ? "text-primary" : "text-muted-foreground"
               }`}>
-                {phase.status === "active" && (
-                  <span className="inline-block w-1.5 h-1.5 bg-primary mr-1 align-middle" style={{ animation: "pulse 2s infinite" }} />
-                )}
+                {phase.status==="active" && <span className="inline-block w-1.5 h-1.5 bg-primary mr-1 align-middle" style={{ animation:"pulse 2s infinite" }} />}
                 {phase.label}
               </span>
             </div>
           ))}
         </div>
       </div>
-
-      {/* Phase cards */}
       <div className="grid grid-cols-4 divide-x divide-border border-b border-border">
         {phases.map((phase) => (
           <div key={phase.id} className="p-5">
             <div className="flex items-center gap-1.5 mb-3">
-              <span className={`w-1.5 h-1.5 ${
-                phase.status === "done" ? "bg-accent" :
-                phase.status === "active" ? "bg-primary" : "bg-border"
-              }`} />
+              <span className={`w-1.5 h-1.5 ${phase.status==="done"?"bg-accent":phase.status==="active"?"bg-primary":"bg-border"}`} />
               <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-                {phase.status === "done" ? "Completed" : phase.status === "active" ? "In Progress" : "Upcoming"}
+                {phase.status==="done"?"Completed":phase.status==="active"?"In Progress":"Upcoming"}
               </span>
             </div>
-            <p className={`text-xs font-bold mb-1 ${
-              phase.status === "done" ? "text-accent" :
-              phase.status === "active" ? "text-primary" :
-              "text-foreground"
-            }`}>{phase.label}</p>
+            <p className={`text-xs font-bold mb-1 ${phase.status==="done"?"text-accent":phase.status==="active"?"text-primary":"text-foreground"}`}>{phase.label}</p>
             <p className="text-[10px] text-muted-foreground">{phase.dates}</p>
-            {"progress" in phase && phase.status === "active" && (
+            {"progress" in phase && phase.status==="active" && (
               <div className="mt-3">
-                <div className="w-full h-0.5 bg-border">
-                  <div className="h-full bg-primary" style={{ width: `${phase.progress}%` }} />
-                </div>
+                <div className="w-full h-0.5 bg-border"><div className="h-full bg-primary" style={{ width:`${phase.progress}%` }} /></div>
                 <p className="text-[9px] text-muted-foreground mt-1">{phase.progress}% complete</p>
               </div>
             )}
           </div>
         ))}
       </div>
-
-      {/* Milestones */}
       <div>
         <div className="px-7 py-3 border-b border-border bg-muted">
           <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Key Milestones</p>
         </div>
         {[
-          { label: "Creative brief approved",   date: "Mar 21", done: true  },
-          { label: "Venue confirmed & booked",  date: "Mar 29", done: true  },
-          { label: "Sponsor deck delivery",     date: "Apr 18", done: true  },
-          { label: "Production wrap",           date: "May 2",  done: false, active: true },
-          { label: "Client review session",     date: "May 12", done: false },
-          { label: "Final delivery package",    date: "Jun 8",  done: false },
-        ].map((m, i) => (
-          <div key={m.label} className={`flex items-center gap-4 px-7 py-3.5 border-b border-border ${m.active ? "bg-primary/5" : ""}`}>
-            <span className={`w-1.5 h-1.5 shrink-0 ${m.done ? "bg-accent" : m.active ? "bg-primary" : "bg-border"}`} />
-            <span className={`text-xs flex-1 ${m.done ? "text-muted-foreground line-through" : m.active ? "text-foreground font-bold" : "text-foreground"}`}>
-              {m.label}
-            </span>
-            <span className={`text-[10px] font-medium ${m.active ? "text-primary font-bold" : "text-muted-foreground"}`}>{m.date}</span>
+          { label:"Creative brief approved",  date:"Mar 21", done:true  },
+          { label:"Venue confirmed & booked", date:"Mar 29", done:true  },
+          { label:"Sponsor deck delivery",    date:"Apr 18", done:true  },
+          { label:"Production wrap",          date:"May 2",  done:false, active:true },
+          { label:"Client review session",    date:"May 12", done:false },
+          { label:"Final delivery package",   date:"Jun 8",  done:false },
+        ].map((m) => (
+          <div key={m.label} className={`flex items-center gap-4 px-7 py-3.5 border-b border-border ${m.active?"bg-primary/5":""}`}>
+            <span className={`w-1.5 h-1.5 shrink-0 ${m.done?"bg-accent":m.active?"bg-primary":"bg-border"}`} />
+            <span className={`text-xs flex-1 ${m.done?"text-muted-foreground line-through":m.active?"text-foreground font-bold":"text-foreground"}`}>{m.label}</span>
+            <span className={`text-[10px] font-medium ${m.active?"text-primary font-bold":"text-muted-foreground"}`}>{m.date}</span>
           </div>
         ))}
       </div>
@@ -297,46 +559,30 @@ function TimelinePanel() {
 function CanvasPanel() {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -6 }}
+      initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
       transition={{ duration: 0.18 }}
       className="absolute inset-0 bg-dot-pattern bg-white flex flex-col overflow-hidden"
     >
-      {/* Toolbar */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-0 border border-border bg-white z-20 shadow-sm">
-        <ToolButton icon={MousePointer2} active />
-        <ToolButton icon={Square} />
-        <ToolButton icon={Type} />
-        <ToolButton icon={ImageIcon} />
-        <div className="w-px h-5 bg-border mx-0" />
-        <ToolButton icon={ZoomIn} />
-        <ToolButton icon={ZoomOut} />
+        <ToolButton icon={MousePointer2} active /><ToolButton icon={Square} /><ToolButton icon={Type} /><ToolButton icon={ImageIcon} />
+        <div className="w-px h-5 bg-border" />
+        <ToolButton icon={ZoomIn} /><ToolButton icon={ZoomOut} />
       </div>
-
-      {/* Label */}
       <div className="absolute top-4 left-6 z-20 flex items-center gap-1.5">
         <span className="text-accent font-bold text-sm leading-none">/</span>
         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Creative Moodboard</span>
       </div>
-
-      {/* Canvas */}
       <div className="relative flex-1 w-full h-full">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl h-72">
-
           <div className="absolute top-0 left-10 w-52 h-36 border border-border bg-white p-1.5 shadow-md -rotate-6 transition-transform hover:rotate-0 hover:z-30 hover:scale-105 cursor-pointer duration-300">
             <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1557683316-973673baf926?w=400&q=80')] bg-cover bg-center" />
           </div>
-
           <div className="absolute top-10 right-16 w-40 h-52 border border-border bg-white p-1.5 shadow-md rotate-3 transition-transform hover:rotate-0 hover:z-30 hover:scale-105 cursor-pointer duration-300">
             <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=80')] bg-cover bg-center" />
           </div>
-
           <div className="absolute bottom-0 left-1/3 w-60 h-40 border border-border bg-white p-1.5 shadow-md rotate-2 transition-transform hover:rotate-0 hover:z-30 hover:scale-105 cursor-pointer duration-300">
             <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80')] bg-cover bg-center" />
           </div>
-
-          {/* Sticky notes */}
           <div className="absolute -top-8 left-56 bg-[#FFF9C4] border border-[#e8e099] p-3 w-32 shadow-md rotate-2 z-20">
             <p className="font-sans font-semibold text-xs leading-snug text-black">Color Direction: Sunset to Twilight</p>
           </div>
@@ -353,44 +599,27 @@ function CanvasPanel() {
 }
 
 /* ─── Shared sub-components ─────────────────────────────── */
-function ColHeader({ children, border = false }: { children: React.ReactNode; border?: boolean }) {
-  return (
-    <div className={`px-6 py-3.5 text-[9px] font-bold text-muted-foreground uppercase tracking-[0.12em] leading-snug ${border ? "border-l border-border" : ""}`}>
-      {children}
-    </div>
-  );
+function ColHeader({ children, border=false }: { children: React.ReactNode; border?: boolean }) {
+  return <div className={`px-6 py-3.5 text-[9px] font-bold text-muted-foreground uppercase tracking-[0.12em] leading-snug ${border?"border-l border-border":""}`}>{children}</div>;
 }
-
-function DataCell({ children, border = false }: { children: React.ReactNode; border?: boolean }) {
-  return (
-    <div className={`px-6 py-6 ${border ? "border-l border-border" : ""}`}>
-      {children}
-    </div>
-  );
+function DataCell({ children, border=false }: { children: React.ReactNode; border?: boolean }) {
+  return <div className={`px-6 py-6 ${border?"border-l border-border":""}`}>{children}</div>;
 }
-
-function BigNum({ children, muted = false, green = false }: { children: React.ReactNode; muted?: boolean; green?: boolean }) {
-  return (
-    <p className={`text-3xl font-bold tracking-tight ${muted ? "text-muted-foreground" : green ? "text-accent" : "text-foreground"}`}>
-      {children}
-    </p>
-  );
+function BigNum({ children, muted=false, green=false }: { children: React.ReactNode; muted?: boolean; green?: boolean }) {
+  return <p className={`text-3xl font-bold tracking-tight ${muted?"text-muted-foreground":green?"text-accent":"text-foreground"}`}>{children}</p>;
 }
-
 function SubLabel({ children }: { children: React.ReactNode }) {
   return <p className="text-[9px] text-muted-foreground uppercase tracking-wider mt-1.5 font-medium">{children}</p>;
 }
-
-function MetricCell({ label, value, sub, accent = false }: { label: string; value: string; sub: string; accent?: boolean }) {
+function MetricCell({ label, value, sub, accent=false }: { label: string; value: string; sub: string; accent?: boolean }) {
   return (
     <div className="px-6 py-5">
       <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.12em] mb-2">{label}</p>
-      <p className={`text-xl font-bold tracking-tight ${accent ? "text-accent" : "text-foreground"}`}>{value}</p>
+      <p className={`text-xl font-bold tracking-tight ${accent?"text-accent":"text-foreground"}`}>{value}</p>
       <p className="text-[10px] text-muted-foreground mt-1">{sub}</p>
     </div>
   );
 }
-
 function ExpenseRow({ label, allocated, spent, pct }: { label: string; allocated: number; spent: number; pct: number }) {
   const isHigh = pct >= 85;
   return (
@@ -400,22 +629,16 @@ function ExpenseRow({ label, allocated, spent, pct }: { label: string; allocated
       <span className="text-xs text-muted-foreground w-24 text-right mr-4">/ €{allocated.toLocaleString()}</span>
       <div className="flex items-center gap-2">
         <div className="flex-1 h-0.5 bg-border">
-          <div
-            className={`h-full transition-all duration-500 ${isHigh ? "bg-primary" : "bg-accent"}`}
-            style={{ width: `${pct}%` }}
-          />
+          <div className={`h-full transition-all duration-500 ${isHigh?"bg-primary":"bg-accent"}`} style={{ width:`${pct}%` }} />
         </div>
-        <span className={`text-[10px] font-bold w-7 text-right ${isHigh ? "text-primary" : "text-accent"}`}>{pct}%</span>
+        <span className={`text-[10px] font-bold w-7 text-right ${isHigh?"text-primary":"text-accent"}`}>{pct}%</span>
       </div>
     </div>
   );
 }
-
-function ToolButton({ icon: Icon, active = false }: { icon: any; active?: boolean }) {
+function ToolButton({ icon: Icon, active=false }: { icon: any; active?: boolean }) {
   return (
-    <button className={`w-8 h-8 flex items-center justify-center transition-colors ${
-      active ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-    }`}>
+    <button className={`w-8 h-8 flex items-center justify-center transition-colors ${active?"bg-muted text-foreground":"text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
       <Icon size={13} />
     </button>
   );
