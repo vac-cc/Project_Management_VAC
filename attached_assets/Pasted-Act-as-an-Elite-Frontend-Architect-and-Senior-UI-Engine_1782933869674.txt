@@ -1,0 +1,26 @@
+Act as an Elite Frontend Architect and Senior UI Engineer. Let's optimize the newly created full-screen "Team" (Agency Talent) directory page. We must enforce absolute high-contrast accessibility and build robust data-entry mechanisms. 
+
+Maintain our strict sharp-cornered (rounded-none), pure white canvas with thin black border grids. Please execute the following precise layout and functional upgrades:
+
+### 1. HIGH-CONTRAST TYPOGRAPHY & AVATAR INVERSION
+- **Job Title Correction:** Inside every collaborator profile section, change the font color of the job titles (e.g., 'Senior Designer', 'Creative Director', 'PR Manager') from white to **Pure Black (`text-black`)** for sharp contrast against the light canvas.
+- **Avatar Monogram Inversion:** For collaborators displaying text-based monogram avatars (e.g., 'CF', 'MS', 'JP'), invert the typography styling. The initials/capital letters inside the circular or square badges must be rendered in **Pure Black text** over a clear or brand-accented background fill. No white-on-white text allowed.
+
+### 2. GLOBAL SEARCH & ADVANCED DIRECTORY FILTERS
+- **Top Search Bar:** Position a clean, full-width architectural Search Bar at the absolute top of the Agency Talent page.
+- **Result Filters:** Next to or immediately below the search input, integrate a row of interactive micro-filters to parse through professionals instantaneously by:
+  1. **Expertise / Role** (e.g., Design, Programming, PR, Copywriting).
+  2. **Skills** (tags matching specialized software or capabilities).
+  3. **Availability / Project Load**.
+
+### 3. MASSIVE DATA ENTRY SYSTEM ("+ Collaborator" & CSV Bulk Import)
+- **Action Trigger:** Place a high-contrast, sharp-edged **"+ Add Collaborator"** button directly next to the "6 professionals" tally counter header.
+- **The Dual-Mode Popup Window:** Clicking this button must launch an internal, sharp-cornered modal window split into two clear operational workflows:
+  - **Mode A (Manual Entry Form):** A structured input form to manually type: Name, Role, Skills (comma-separated tags), Short Bio, CV link, and Portfolio URL.
+  - **Mode B (Bulk CSV Import Area):** A clean "Drag & Drop File" target area specifically engineered to accept a **.csv file** to parse and import large teams of freelancers simultaneously into the agency database in bulk. Include a subtle text guide or helper template preview.
+
+### 4. HISTORICAL CO-CREATION TRACKER
+- **Historical Ledger:** Inside each professional's individual profile block/section, add an integrated line-item list titled **"Co-Created Projects"**.
+- **Project Tracking:** This area must list every active or past project this specific collaborator has co-created or executed with the agency so far (e.g., "Beach Pizza Cascais - Brand Strategy", "Cortezi - Clothing Pop-Up Lisbon"), establishing a clear log of their operational history within the firm.
+
+Ensure all layout margins remain perfectly balanced with zero-radius corners. Update the live preview workspace for validation.
