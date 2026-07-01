@@ -123,7 +123,7 @@ function FinancePanel({ overrun, setOverrun, drawerOpen, setDrawerOpen, pendingC
       <div className="flex-1 flex flex-col overflow-y-auto min-w-0">
 
         {/* Report header */}
-        <div className="flex items-center justify-between px-7 border-b border-border shrink-0 h-[72px]">
+        <div className="flex items-center justify-between px-7 border-b border-border shrink-0 h-[72px]" style={{ background: "rgba(191,87,0,0.06)" }}>
           <div className="flex items-center gap-2">
             <span className="text-accent font-bold text-sm leading-none">/</span>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Project Financial Report</p>
@@ -184,11 +184,11 @@ function FinancePanel({ overrun, setOverrun, drawerOpen, setDrawerOpen, pendingC
           <MetricCell label="Invoiced to Date"    value="€28,000" sub="62% of approved budget"          />
         </div>
 
-        {/* Budget Breakdown */}
-        <div className="flex flex-col shrink-0">
+        {/* Budget Breakdown — separated section */}
+        <div className="flex flex-col shrink-0 mt-6">
 
-          {/* Budget Breakdown label */}
-          <div className="px-7 border-b border-border flex items-center gap-2 bg-white h-[72px] shrink-0">
+          {/* Budget Breakdown label — thick break line + leaf green tint */}
+          <div className="px-7 border-t-2 border-b border-foreground border-b-border flex items-center gap-2 h-[72px] shrink-0" style={{ background: "rgba(153,204,51,0.07)" }}>
             <span className="text-accent font-bold text-sm leading-none">/</span>
             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Budget Breakdown</span>
           </div>
