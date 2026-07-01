@@ -116,13 +116,10 @@ function FinancePanel({ overrun, setOverrun, drawerOpen, setDrawerOpen, pendingC
       <div className="flex-1 flex flex-col overflow-y-auto min-w-0">
 
         {/* Report header */}
-        <div className="flex items-center justify-between px-7 py-5 border-b border-border shrink-0">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-accent font-bold text-sm leading-none">/</span>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Project Financial Report</p>
-            </div>
-            <p className="text-xs text-foreground font-medium mt-0.5">Beach Pizza Cascais · Brand Strategy & Events</p>
+        <div className="flex items-center justify-between px-7 border-b border-border shrink-0 h-[72px]">
+          <div className="flex items-center gap-2">
+            <span className="text-accent font-bold text-sm leading-none">/</span>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Project Financial Report</p>
           </div>
           <button
             onClick={() => setOverrun(!overrun)}
@@ -184,7 +181,7 @@ function FinancePanel({ overrun, setOverrun, drawerOpen, setDrawerOpen, pendingC
         <div className="flex flex-col shrink-0">
 
           {/* Budget Breakdown label */}
-          <div className="px-7 py-4 border-b border-border flex items-center gap-2 bg-white">
+          <div className="px-7 border-b border-border flex items-center gap-2 bg-white h-[72px] shrink-0">
             <span className="text-accent font-bold text-sm leading-none">/</span>
             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Budget Breakdown</span>
           </div>
