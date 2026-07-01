@@ -1,0 +1,15 @@
+Act as an Elite UI/UX Engineer and Frontend Developer. Let's upgrade the production timeline in Zone B into a time-aware, highly visual system. Keep our strict brutalist-minimalist style: Pure White canvas, razor-thin black borders, and sharp 90-degree corners (rounded-none).
+
+Please execute the following structural layout and data updates:
+
+### 1. TIME AWARENESS & SYSTEM ANCHOR (Lisbon Timezone)
+- **Hardcoded Current Date State:** hardcode the platform's current active date to **Wednesday, 1st of July 2026**, operating under Lisbon time (WEST). 
+- **The Timeline Visual Ruler Marker:** Inside the Gantt chart, implement a highly visible vertical line, a sharp square indicator, or a distinct pointer that sits exactly on the "1st of July 2026" column grid. This serves as a live "You Are Here" anchor so team members instantly see what is overdue, what is active today, and what is upcoming.
+
+### 2. GRAPHIC HARMONIZATION & GANTT GRID UPDATES
+- **Title Change & Expand Action:** Rename the entire section from "Gantt" or "Gantt Chart" to **"Timeline"**. 
+- **Inline Expand Button:** Place a clean, minimalist "Expand View" button or icon directly next to the new "Timeline" title, ensuring users immediately recognize they can view the schedule on a larger scale.
+- **Detailed Date Headers:** The horizontal header grid of the Gantt timeline must explicitly display three layers of chronological data: the Month (July 2026), the Day of the Month (e.g., 1, 2, 3), and the Day of the Week (e.g., Wed, Thu, Fri).
+- **Collaborator Color/Pattern Mapping:** Every active professional on the timeline (e.g., Marta, Tiago, etc.) must be assigned a distinct, elegant color block or minimal geometric pattern indicator next to their name. The rectangular task duration bars assigned to them must inherit that specific identifier, making it incredibly easy to scan who is responsible for what at a glance. *(Keep the colors premium and complementary to the VĀC palette, avoiding oversaturated tones).*
+
+Ensure all text alignments remain sharp, using thin black container borders (`border-[1px] border-black/10`). Update the workspace preview for testing.

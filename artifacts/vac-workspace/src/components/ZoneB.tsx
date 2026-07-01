@@ -498,16 +498,45 @@ function CostForm({ onClose, onSubmit }: { onClose: () => void; onSubmit: (data:
 }
 
 /* ─── Timeline Panel ─────────────────────────────────────── */
-/* ── Gantt task data ── */
-const GANTT_WEEKS = ["Apr W1","Apr W2","Apr W3","Apr W4","May W1","May W2","May W3","May W4"];
+/* ── Timeline data — anchored to Wed 1 Jul 2026 (Lisbon/WEST) ── */
+
+// Assignee color palette — premium tones complementary to VĀC brand
+const ASSIGNEE_PALETTE: Record<string, { bg: string; text: string; light: string }> = {
+  "Marta":    { bg: "#8B6F5E", text: "#fff", light: "#F5EDE8" },  // cognac
+  "Tiago":    { bg: "#4A7B9D", text: "#fff", light: "#E5F0F8" },  // slate blue
+  "Catarina": { bg: "#5C8A5E", text: "#fff", light: "#E8F3E9" },  // sage
+  "JP":       { bg: "#7B6B9E", text: "#fff", light: "#EEE9F6" },  // dusty violet
+  "Miguel":   { bg: "#9E7A3A", text: "#fff", light: "#F6EFE1" },  // warm amber
+};
+
+// 15 working days (Mon–Fri × 3 weeks) centred on Jul 1 2026
+const TIMELINE_DAYS = [
+  { day:"22", dow:"Mon", month:"Jun 2026", isToday:false },
+  { day:"23", dow:"Tue", month:"Jun 2026", isToday:false },
+  { day:"24", dow:"Wed", month:"Jun 2026", isToday:false },
+  { day:"25", dow:"Thu", month:"Jun 2026", isToday:false },
+  { day:"26", dow:"Fri", month:"Jun 2026", isToday:false },
+  { day:"29", dow:"Mon", month:"Jun 2026", isToday:false },
+  { day:"30", dow:"Tue", month:"Jun 2026", isToday:false },
+  { day:"1",  dow:"Wed", month:"Jul 2026", isToday:true  }, // ← TODAY
+  { day:"2",  dow:"Thu", month:"Jul 2026", isToday:false },
+  { day:"3",  dow:"Fri", month:"Jul 2026", isToday:false },
+  { day:"6",  dow:"Mon", month:"Jul 2026", isToday:false },
+  { day:"7",  dow:"Tue", month:"Jul 2026", isToday:false },
+  { day:"8",  dow:"Wed", month:"Jul 2026", isToday:false },
+  { day:"9",  dow:"Thu", month:"Jul 2026", isToday:false },
+  { day:"10", dow:"Fri", month:"Jul 2026", isToday:false },
+];
+const TODAY_COL = 7; // Jul 1 = column index 7 (0-based)
+
 const GANTT_TASKS = [
-  { task:"Scenography Build",   assignee:"Marta",    start:0, end:3, status:"done"     },
-  { task:"Copywriting Review",  assignee:"Catarina", start:1, end:2, status:"done"     },
-  { task:"Print Proofing",      assignee:"Tiago",    start:2, end:4, status:"active"   },
-  { task:"Photography Session", assignee:"JP",       start:3, end:5, status:"critical" },
-  { task:"Motion Graphics",     assignee:"Tiago",    start:4, end:6, status:"upcoming" },
-  { task:"Client Review",       assignee:"Miguel",   start:5, end:7, status:"upcoming" },
-  { task:"Final Export",        assignee:"Marta",    start:6, end:8, status:"upcoming" },
+  { task:"Scenography Build",   assignee:"Marta",    start:0,  end:5,  status:"done"     },
+  { task:"Copywriting Review",  assignee:"Catarina", start:2,  end:6,  status:"done"     },
+  { task:"Print Proofing",      assignee:"Tiago",    start:4,  end:9,  status:"active"   },
+  { task:"Photography Session", assignee:"JP",       start:6,  end:11, status:"critical" },
+  { task:"Motion Graphics",     assignee:"Tiago",    start:9,  end:13, status:"upcoming" },
+  { task:"Client Review",       assignee:"Miguel",   start:11, end:14, status:"upcoming" },
+  { task:"Final Export",        assignee:"Marta",    start:13, end:15, status:"upcoming" },
 ];
 
 function TimelinePanel() {
@@ -515,17 +544,21 @@ function TimelinePanel() {
   const [ganttHovered, setGanttHovered] = useState(false);
   const [meetingTooltip, setMeetingTooltip] = useState<string | null>(null);
 
+  // TODAY = Wednesday 1 Jul 2026 (Lisbon / WEST)
+  // Compact bar spans May 1 – Sep 30 2026 (153 days); Jul 1 = day 61 → 39.9% ≈ 40%
+  const TODAY_PCT = 40;
+
   const phases = [
-    { id:"pre",      label:"Pre-production", status:"done",     dates:"Mar 1 – Mar 21",   progress: null,  meetings:[] },
+    { id:"pre",      label:"Pre-production", status:"done",     dates:"May 1 – May 31 2026",  progress: null, meetings:[] },
     {
-      id:"prod",     label:"Production",     status:"active",   dates:"Mar 22 – May 2",   progress: 40,
-      meetings:[{ label:"Weekly Team Sync", date:"Apr 24", href:"#teams" }],
+      id:"prod",     label:"Production",     status:"active",   dates:"Jun 1 – Jul 15 2026",  progress: 62,
+      meetings:[{ label:"Weekly Team Sync", date:"Jul 3", href:"#teams" }],
     },
     {
-      id:"review",   label:"Review",         status:"upcoming", dates:"May 3 – May 24",   progress: null,
-      meetings:[{ label:"Client Alignment Call", date:"May 10", href:"#teams" }],
+      id:"review",   label:"Review",         status:"upcoming", dates:"Jul 16 – Aug 31 2026", progress: null,
+      meetings:[{ label:"Client Alignment Call", date:"Jul 18", href:"#teams" }],
     },
-    { id:"delivery", label:"Delivery",       status:"upcoming", dates:"May 25 – Jun 8",   progress: null,  meetings:[] },
+    { id:"delivery", label:"Delivery",       status:"upcoming", dates:"Sep 1 – Sep 30 2026",  progress: null, meetings:[] },
   ];
 
   return (
@@ -538,16 +571,25 @@ function TimelinePanel() {
         {/* Header */}
         <div className="flex items-center justify-between px-7 py-5 border-b border-border shrink-0">
           <div>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Production Schedule</p>
+            <div className="flex items-center gap-2">
+              <span className="text-accent font-bold text-sm leading-none">/</span>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Production Schedule</p>
+            </div>
             <p className="text-xs text-foreground font-medium mt-0.5">Beach Pizza Cascais · Active: Production Phase</p>
           </div>
-          <span className="flex items-center gap-1.5 text-[10px] font-bold text-primary uppercase tracking-wider">
-            <span className="w-1.5 h-1.5 bg-primary" style={{ animation:"pulse 2s infinite" }} />
-            In Production
-          </span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground uppercase tracking-wider border border-border px-2 py-1">
+              <span className="w-1.5 h-1.5 bg-foreground" />
+              Wed 1 Jul 2026 · Lisbon
+            </div>
+            <span className="flex items-center gap-1.5 text-[10px] font-bold text-primary uppercase tracking-wider">
+              <span className="w-1.5 h-1.5 bg-primary" style={{ animation:"pulse 2s infinite" }} />
+              In Production
+            </span>
+          </div>
         </div>
 
-        {/* ── Phase Status Cards (moved before Gantt) ── */}
+        {/* ── Phase Status Cards ── */}
         <div className="grid grid-cols-4 divide-x divide-border border-b border-border shrink-0">
           {phases.map((phase) => (
             <div key={phase.id} className={`p-5 ${phase.status==="active" ? "bg-primary/5" : ""}`}>
@@ -561,16 +603,12 @@ function TimelinePanel() {
                 {phase.label}
               </p>
               <p className="text-[10px] text-muted-foreground mb-3">{phase.dates}</p>
-
-              {/* Progress bar for active phase */}
               {phase.progress !== null && (
                 <div className="mb-3">
                   <div className="w-full h-0.5 bg-border"><div className="h-full bg-primary" style={{ width:`${phase.progress}%` }} /></div>
                   <p className="text-[9px] text-muted-foreground mt-1">{phase.progress}% complete</p>
                 </div>
               )}
-
-              {/* Meeting triggers */}
               {phase.meetings.map((m) => (
                 <div key={m.label} className="relative">
                   <button
@@ -604,59 +642,84 @@ function TimelinePanel() {
           ))}
         </div>
 
-        {/* ── Compact Gantt (clickable to expand) ── */}
-        <div className="px-7 py-6 border-b border-border shrink-0">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Gantt — Q1/Q2 2025</p>
+        {/* ── Compact Timeline bar ── */}
+        <div className="px-7 py-5 border-b border-border shrink-0">
+          {/* Title row — "/ Timeline" label + Expand View inline */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-accent font-bold text-sm leading-none">/</span>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Timeline</span>
+            </div>
             <button
               onClick={() => setGanttOpen(true)}
-              className="text-[9px] font-bold text-accent uppercase tracking-wider hover:text-foreground transition-colors"
+              className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest border border-border px-2.5 py-1 hover:bg-foreground hover:text-white hover:border-foreground transition-all"
             >
-              Expand →
+              Expand View
+              <ExternalLink size={8} />
             </button>
           </div>
-          <div className="flex text-[9px] text-muted-foreground font-bold uppercase tracking-wider mb-2">
-            {["Mar","Apr","May","Jun"].map((m) => (
-              <div key={m} className="flex-1 border-l border-border pl-2">{m}</div>
+
+          {/* Month markers — May → Sep 2026 */}
+          <div className="flex text-[9px] text-muted-foreground font-bold uppercase tracking-wider mb-1.5">
+            {["May 2026","Jun 2026","Jul 2026","Aug 2026","Sep 2026"].map((m) => (
+              <div key={m} className="flex-1 border-l border-border pl-1.5">{m}</div>
             ))}
           </div>
+
+          {/* Bar area — phase blocks + TODAY marker */}
           <div
-            className="relative h-9 bg-muted border border-border overflow-hidden cursor-pointer group"
+            className="relative h-10 bg-muted border border-black/10 overflow-hidden cursor-pointer group"
             onMouseEnter={() => setGanttHovered(true)}
             onMouseLeave={() => setGanttHovered(false)}
             onClick={() => setGanttOpen(true)}
           >
-            {phases.map((phase, i) => {
-              const starts = [0,20,58,82];
-              const widths = [20,38,24,18];
-              return (
-                <div key={phase.id}
-                  className={`absolute top-0 h-full flex items-center px-2.5 border-r border-border transition-all ${
-                    phase.status==="done" ? "bg-accent/15" : phase.status==="active" ? "bg-primary/10" : ""
-                  } group-hover:opacity-70`}
-                  style={{ left:`${starts[i]}%`, width:`${widths[i]}%` }}
-                >
-                  {phase.progress !== null && (
-                    <div className="absolute left-0 top-0 h-full bg-primary/20 border-r border-primary/40" style={{ width:`${phase.progress}%` }} />
-                  )}
-                  <span className={`relative z-10 text-[9px] font-bold uppercase tracking-wider ${
-                    phase.status==="done" ? "text-accent" : phase.status==="active" ? "text-primary" : "text-muted-foreground"
-                  }`}>
-                    {phase.label}
-                  </span>
-                </div>
-              );
-            })}
-            {/* Hover overlay tooltip */}
+            {/* Phase segments — positions as % of May 1–Sep 30 */}
+            {[
+              { id:"pre",  label:"Pre-prod",   left:0,  width:20, status:"done"     },
+              { id:"prod", label:"Production", left:20, width:48, status:"active",  progress: 62 },
+              { id:"rev",  label:"Review",     left:68, width:20, status:"upcoming" },
+              { id:"del",  label:"Delivery",   left:88, width:12, status:"upcoming" },
+            ].map((seg) => (
+              <div
+                key={seg.id}
+                className={`absolute top-0 h-full flex items-center px-2 border-r border-black/10 group-hover:opacity-60 transition-opacity ${
+                  seg.status==="done" ? "bg-accent/15" : seg.status==="active" ? "bg-primary/10" : ""
+                }`}
+                style={{ left:`${seg.left}%`, width:`${seg.width}%` }}
+              >
+                {"progress" in seg && seg.status==="active" && (
+                  <div className="absolute left-0 top-0 h-full bg-primary/20 border-r border-primary/30"
+                    style={{ width:`${seg.progress}%` }} />
+                )}
+                <span className={`relative z-10 text-[9px] font-bold uppercase tracking-wider truncate ${
+                  seg.status==="done"?"text-accent":seg.status==="active"?"text-primary":"text-muted-foreground"
+                }`}>{seg.label}</span>
+              </div>
+            ))}
+
+            {/* TODAY vertical marker at 40% */}
+            <div
+              className="absolute top-0 h-full z-20 flex flex-col items-center"
+              style={{ left:`${TODAY_PCT}%` }}
+            >
+              <div className="w-px h-full bg-foreground" />
+              <div className="absolute top-0 -translate-x-1/2 bg-foreground text-white text-[8px] font-bold px-1 py-0.5 uppercase tracking-wider whitespace-nowrap">
+                Today
+              </div>
+              {/* Square tick at bottom */}
+              <div className="absolute bottom-0 -translate-x-1/2 w-2 h-2 bg-foreground" />
+            </div>
+
+            {/* Hover overlay */}
             <AnimatePresence>
               {ganttHovered && (
                 <motion.div
                   initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
-                  transition={{ duration:0.12 }}
-                  className="absolute inset-0 flex items-center justify-center bg-foreground/80 z-20"
+                  transition={{ duration:0.1 }}
+                  className="absolute inset-0 flex items-center justify-center bg-foreground/75 z-30"
                 >
                   <span className="text-white text-[10px] font-bold uppercase tracking-widest">
-                    Click to expand detailed production Gantt
+                    Click to expand detailed Timeline
                   </span>
                 </motion.div>
               )}
@@ -670,12 +733,12 @@ function TimelinePanel() {
             <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Key Milestones</p>
           </div>
           {[
-            { label:"Creative brief approved",  date:"Mar 21", done:true  },
-            { label:"Venue confirmed & booked", date:"Mar 29", done:true  },
-            { label:"Sponsor deck delivery",    date:"Apr 18", done:true  },
-            { label:"Production wrap",          date:"May 2",  done:false, active:true },
-            { label:"Client review session",    date:"May 12", done:false },
-            { label:"Final delivery package",   date:"Jun 8",  done:false },
+            { label:"Creative brief approved",  date:"May 15 2026", done:true  },
+            { label:"Venue confirmed & booked", date:"May 28 2026", done:true  },
+            { label:"Sponsor deck delivery",    date:"Jun 20 2026", done:true  },
+            { label:"Production wrap",          date:"Jul 15 2026", done:false, active:true },
+            { label:"Client review session",    date:"Aug 5 2026",  done:false },
+            { label:"Final delivery package",   date:"Sep 12 2026", done:false },
           ].map((m) => (
             <div key={m.label} className={`flex items-center gap-4 px-7 py-3.5 border-b border-border ${m.active?"bg-primary/5":""}`}>
               <span className={`w-1.5 h-1.5 shrink-0 ${m.done?"bg-accent":m.active?"bg-primary":"bg-border"}`} />
@@ -686,110 +749,177 @@ function TimelinePanel() {
         </div>
       </motion.div>
 
-      {/* ── Full Gantt Modal ── */}
+      {/* ── Expanded Timeline Modal ── */}
       <AnimatePresence>
         {ganttOpen && (
           <motion.div
             initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
             transition={{ duration:0.18 }}
-            className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-8"
+            className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-6"
           >
             <motion.div
               initial={{ opacity:0, scale:0.97, y:12 }}
               animate={{ opacity:1, scale:1, y:0 }}
               exit={{ opacity:0, scale:0.97, y:12 }}
               transition={{ duration:0.2 }}
-              className="bg-white w-full max-w-5xl max-h-[85vh] flex flex-col border border-border shadow-2xl overflow-hidden"
+              className="bg-white w-full max-w-6xl max-h-[88vh] flex flex-col border border-black/10 shadow-2xl overflow-hidden"
             >
               {/* Modal header */}
-              <div className="flex items-center justify-between px-8 py-5 border-b border-border shrink-0">
+              <div className="flex items-center justify-between px-8 py-5 border-b border-black/10 shrink-0">
                 <div>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Detailed Production Gantt</p>
-                  <h2 className="text-sm font-bold text-foreground tracking-tight mt-0.5">Beach Pizza Cascais · Apr – May 2025</h2>
+                  <div className="flex items-center gap-2">
+                    <span className="text-accent font-bold text-sm leading-none">/</span>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Detailed Production Timeline</p>
+                  </div>
+                  <h2 className="text-sm font-bold text-foreground tracking-tight mt-0.5">
+                    Beach Pizza Cascais · Jun 22 – Jul 10 2026
+                    <span className="ml-3 text-[9px] font-bold text-primary uppercase tracking-wider border border-primary/30 px-1.5 py-0.5">
+                      Today: Wed 1 Jul 2026
+                    </span>
+                  </h2>
                 </div>
                 <div className="flex items-center gap-6">
-                  {/* Legend */}
-                  <div className="flex items-center gap-4 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-                    <span className="flex items-center gap-1.5"><span className="w-3 h-2 bg-foreground/30" />Done</span>
-                    <span className="flex items-center gap-1.5"><span className="w-3 h-2 bg-primary" />Active</span>
-                    <span className="flex items-center gap-1.5"><span className="w-3 h-2 bg-accent" />Critical</span>
-                    <span className="flex items-center gap-1.5"><span className="w-3 h-2 bg-border" />Upcoming</span>
+                  {/* Assignee legend */}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {Object.entries(ASSIGNEE_PALETTE).map(([name, c]) => (
+                      <span key={name} className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                        <span className="w-2.5 h-2.5" style={{ background: c.bg }} />
+                        {name}
+                      </span>
+                    ))}
                   </div>
                   <button
                     onClick={() => setGanttOpen(false)}
                     data-testid="button-close-gantt"
-                    className="w-8 h-8 border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
+                    className="w-8 h-8 border border-black/10 flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors shrink-0"
                   >
                     <X size={14} />
                   </button>
                 </div>
               </div>
 
-              {/* Gantt grid */}
+              {/* Timeline grid */}
               <div className="overflow-auto flex-1">
-                <table className="w-full border-collapse min-w-[700px]">
+                <table className="border-collapse" style={{ width: "100%", minWidth: "900px" }}>
                   <thead>
+                    {/* Row 1: Month groups */}
                     <tr className="bg-muted">
-                      <th className="text-left px-5 py-3 text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em] border-b border-r border-border w-40 sticky left-0 bg-muted z-10">
+                      <th className="px-5 py-2 border-b border-r border-black/10 w-36 sticky left-0 bg-muted z-20" />
+                      <th className="px-4 py-2 border-b border-r border-black/10 w-28 sticky left-36 bg-muted z-20" />
+                      {/* Jun 2026 spans cols 0–6, Jul 2026 spans cols 7–14 */}
+                      <th colSpan={7} className="px-3 py-2 text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em] border-b border-r border-black/10 text-left">
+                        Jun 2026
+                      </th>
+                      <th colSpan={8} className="px-3 py-2 text-[9px] font-bold text-primary uppercase tracking-[0.14em] border-b border-r border-black/10 text-left">
+                        Jul 2026
+                      </th>
+                    </tr>
+                    {/* Row 2: Day numbers */}
+                    <tr className="bg-muted">
+                      <th className="text-left px-5 py-2 text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em] border-b border-r border-black/10 sticky left-0 bg-muted z-20">
                         Task
                       </th>
-                      <th className="text-left px-4 py-3 text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em] border-b border-r border-border w-28">
+                      <th className="text-left px-4 py-2 text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em] border-b border-r border-black/10 sticky left-36 bg-muted z-20">
                         Assignee
                       </th>
-                      {GANTT_WEEKS.map((w) => (
-                        <th key={w} className="px-2 py-3 text-[9px] font-bold text-muted-foreground uppercase tracking-wider border-b border-r border-border text-center min-w-[80px]">
-                          {w}
+                      {TIMELINE_DAYS.map((d, i) => (
+                        <th
+                          key={i}
+                          className={`px-0 py-2 text-[10px] font-bold border-b border-r border-black/10 text-center min-w-[52px] ${
+                            d.isToday ? "bg-foreground text-white" : "text-foreground"
+                          }`}
+                        >
+                          {d.day}
+                        </th>
+                      ))}
+                    </tr>
+                    {/* Row 3: Day of week */}
+                    <tr className="bg-white">
+                      <th className="border-b border-r border-black/10 sticky left-0 bg-white z-20" />
+                      <th className="border-b border-r border-black/10 sticky left-36 bg-white z-20" />
+                      {TIMELINE_DAYS.map((d, i) => (
+                        <th
+                          key={i}
+                          className={`py-1.5 text-[9px] font-bold border-b border-r border-black/10 text-center uppercase tracking-wider ${
+                            d.isToday ? "text-foreground" : "text-muted-foreground"
+                          }`}
+                        >
+                          {d.dow}
                         </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {GANTT_TASKS.map((row, ri) => (
-                      <tr key={row.task} className={`border-b border-border ${ri % 2 === 0 ? "bg-white" : "bg-muted/40"}`}>
-                        <td className="px-5 py-4 text-xs font-medium text-foreground border-r border-border sticky left-0 bg-inherit z-10 whitespace-nowrap">
-                          {row.task}
-                        </td>
-                        <td className="px-4 py-4 border-r border-border">
-                          <div className="flex items-center gap-2">
-                            <span className={`w-5 h-5 flex items-center justify-center text-[9px] font-bold text-white shrink-0 ${
-                              row.status==="done"?"bg-foreground/40":row.status==="active"?"bg-primary":row.status==="critical"?"bg-accent":"bg-border"
-                            }`}>
-                              {row.assignee.slice(0,1)}
-                            </span>
-                            <span className="text-[10px] text-muted-foreground font-medium">{row.assignee}</span>
-                          </div>
-                        </td>
-                        {GANTT_WEEKS.map((_, wi) => {
-                          const inBar = wi >= row.start && wi < row.end;
-                          const isStart = wi === row.start;
-                          const isEnd = wi === row.end - 1;
-                          return (
-                            <td key={wi} className="border-r border-border px-1 py-4">
-                              {inBar && (
-                                <div className={`h-5 ${
-                                  row.status==="done"     ? "bg-foreground/25" :
-                                  row.status==="active"   ? "bg-primary" :
-                                  row.status==="critical" ? "bg-accent" :
-                                  "bg-border"
-                                } ${isStart ? "ml-2" : ""} ${isEnd ? "mr-2" : ""}`} />
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
+                    {GANTT_TASKS.map((row, ri) => {
+                      const palette = ASSIGNEE_PALETTE[row.assignee] ?? { bg:"#ccc", text:"#000", light:"#f5f5f5" };
+                      return (
+                        <tr key={row.task} className={`border-b border-black/10 ${ri % 2 === 0 ? "bg-white" : "bg-muted/30"}`}>
+                          <td className="px-5 py-3 text-xs font-medium text-foreground border-r border-black/10 sticky left-0 bg-inherit z-10 whitespace-nowrap w-36">
+                            {row.task}
+                          </td>
+                          <td className="px-4 py-3 border-r border-black/10 sticky left-36 bg-inherit z-10 w-28">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="w-5 h-5 flex items-center justify-center text-[9px] font-bold shrink-0"
+                                style={{ background: palette.bg, color: palette.text }}
+                              >
+                                {row.assignee.slice(0,1)}
+                              </span>
+                              <span className="text-[10px] font-medium text-muted-foreground">{row.assignee}</span>
+                            </div>
+                          </td>
+                          {TIMELINE_DAYS.map((d, wi) => {
+                            const inBar = wi >= row.start && wi < row.end;
+                            const isStart = wi === row.start;
+                            const isEnd = wi === row.end - 1;
+                            const bgColor = row.status === "done"
+                              ? "rgba(0,0,0,0.18)"
+                              : row.status === "upcoming"
+                              ? palette.light
+                              : palette.bg;
+                            const isTodayCol = d.isToday;
+                            return (
+                              <td
+                                key={wi}
+                                className={`border-r border-black/10 px-0.5 py-3 ${isTodayCol ? "bg-foreground/5" : ""}`}
+                              >
+                                {inBar && (
+                                  <div
+                                    className={`h-5 ${isStart ? "ml-1" : ""} ${isEnd ? "mr-1" : ""}`}
+                                    style={{
+                                      background: bgColor,
+                                      border: row.status === "upcoming" ? `1px solid ${palette.bg}` : "none",
+                                    }}
+                                  />
+                                )}
+                                {/* TODAY column marker line */}
+                                {isTodayCol && !inBar && (
+                                  <div className="h-5 flex items-center justify-center">
+                                    <div className="w-px h-full bg-foreground/20" />
+                                  </div>
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
 
               {/* Modal footer */}
-              <div className="px-8 py-4 border-t border-border shrink-0 flex items-center justify-between bg-muted/40">
-                <p className="text-[9px] text-muted-foreground uppercase tracking-wider font-bold">
-                  7 tasks · 3 assignees · Apr 1 – May 31
-                </p>
+              <div className="px-8 py-4 border-t border-black/10 shrink-0 flex items-center justify-between bg-muted/40">
+                <div className="flex items-center gap-4 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <span>7 Tasks · 5 Assignees · Jun 22 – Jul 10 2026</span>
+                  <span className="flex items-center gap-1.5 text-foreground">
+                    <span className="w-2 h-2 bg-foreground" />
+                    Today: Wed 1 Jul 2026 · Lisbon
+                  </span>
+                </div>
                 <button
                   onClick={() => setGanttOpen(false)}
-                  className="text-[10px] font-bold text-foreground uppercase tracking-widest border border-border px-4 py-2 hover:bg-foreground hover:text-white transition-all"
+                  className="text-[10px] font-bold text-foreground uppercase tracking-widest border border-black/10 px-4 py-2 hover:bg-foreground hover:text-white hover:border-foreground transition-all"
                 >
                   Close View
                 </button>
