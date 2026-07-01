@@ -1,0 +1,25 @@
+Act as an Elite Frontend Architect and UI/UX Designer. Let's execute a major architectural upgrade to Zone A to lock in our collaborator data sync, clean up typography, and build high-fidelity document preview flows. 
+
+Maintain our strict brutalist-minimalist style: Pure White canvas, razor-thin black borders, and sharp 90-degree corners (rounded-none).
+
+Please implement the following precise updates:
+
+### 1. ZONE A DATA SYNC & TYPOGRAPHY CLEANUP
+- **Collaborator Palette Sync:** Bind the avatar color blocks and geometric pattern markers in Zone A's "Collaborators" section directly to the global data model. They must perfectly match and synchronize with the task bars in Zone B's Timeline (Detailed Production Timeline view). If Tiago has a pattern-striped block in Zone B, his avatar container in Zone A must match exactly.
+- **Client Header Cleanup:** Under the client name "Beach Pizza", completely delete the ".Active" text badge. Leave only the clean project detail subtitle: "Brand Strategy".
+
+### 2. NEW "BRIEF" STRUCTURAL SECTION
+- **Section Insertion:** Add a brand-new section in Zone A, positioned strategically above the "Agreements" module and below the "Collaborators" list.
+- **Visual Spec:** Title it "Brief" using our clean, condensed header style.
+- **Content:** List a clean, architectural line-item summary of project details and deliverables (e.g., "Brand Identity Layout", "Packaging Specs"). 
+- Include a high-contrast, sharp-edged "View" button next to it.
+
+### 3. HIGH-FIDELITY DOCUMENT PREVIEW FLOWS (Agreements & Brief)
+Configure the "View" buttons for BOTH the new **Brief** section and the existing **Agreements** documents to operate with the following secure popup lifecycle:
+- Clicking "View" must NOT break the session or navigate away. It must open a clean, internal pop-up window/modal overlay inside the platform.
+- **Inside the Modal:** Render a minimalist document viewer interface (simulated document canvas/iframe preview) with high-contrast text.
+- **The Dual-Action Headers:** At the top of the modal, place two crisp, sharp-cornered action triggers:
+  1. A **"Download"** action link/button to trigger a local file grab.
+  2. A **"View in Full Screen"** or **"Open in New Tab"** button that explicitly opens the target document layout cleanly inside a separate browser tab (`target="_blank"`), leaving the main platform active and untouched in the background.
+
+Review all alignment margins to ensure Zone A balances beautifully with Zone B. Update the preview for live verification.
