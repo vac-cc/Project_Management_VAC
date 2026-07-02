@@ -7,14 +7,14 @@ import ZoneC from "../components/ZoneC";
 
 // ── Types ────────────────────────────────────────────────────
 
-type ProjectStatus = "active" | "past";
+export type ProjectStatus = "active" | "past";
 
-interface Milestone {
+export interface Milestone {
   label: string;
   date: string;
 }
 
-interface Project {
+export interface Project {
   id: string;
   client: string;
   clientId: string;
@@ -32,7 +32,7 @@ interface Project {
 
 // ── Seed Data ────────────────────────────────────────────────
 
-const PROJECTS: Project[] = [
+export const PROJECTS: Project[] = [
   // ── Active ──────────────────────────────────────────────────
   {
     id: "BPC-001",

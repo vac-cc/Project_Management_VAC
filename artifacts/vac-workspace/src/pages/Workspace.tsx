@@ -7,6 +7,7 @@ import ZoneC from "../components/ZoneC";
 import TeamPage from "./TeamPage";
 import ClientsPage from "./ClientsPage";
 import ProjectsPage from "./ProjectsPage";
+import FinancePage from "./FinancePage";
 
 export default function Workspace() {
   const [pendingCount, setPendingCount] = useState(0);
@@ -16,7 +17,8 @@ export default function Workspace() {
   const isTeam     = location === "/team";
   const isClients  = location === "/clients";
   const isProjects = location === "/projects";
-  const isWorkspace = !isTeam && !isClients && !isProjects;
+  const isFinance  = location === "/finance";
+  const isWorkspace = !isTeam && !isClients && !isProjects && !isFinance;
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background text-foreground font-sans">
@@ -30,6 +32,7 @@ export default function Workspace() {
         {isTeam     && <TeamPage />}
         {isClients  && <ClientsPage />}
         {isProjects && <ProjectsPage />}
+        {isFinance  && <FinancePage />}
         {isWorkspace && (
           <>
             <ZoneA />

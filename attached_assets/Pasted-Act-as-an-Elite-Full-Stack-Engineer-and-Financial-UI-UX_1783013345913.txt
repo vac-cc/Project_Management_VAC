@@ -1,0 +1,32 @@
+Act as an Elite Full-Stack Engineer and Financial UI/UX Expert familiar with Portuguese Accounting Standards. Let's build a robust, high-fidelity "FinancePage" from scratch. 
+
+Maintain our strict sharp-cornered (rounded-none), high-contrast brutalist minimalist identity using the Vāc Brand palette: Leaf Green (#99CC33), Terracotta (#BF5700), and Pure Black.
+
+Please implement the following two-tab financial management system:
+
+### TAB 1: PROJECT MANAGEMENT (Dynamic Operational Ledger)
+- **Data Hydration:** This tab must dynamically pull and list the active projects currently running on the Project Page (starting with Beach Pizza Cascais). Selecting a project launches its dedicated "Project Budget Breakdown" engine.
+- **Excel-Style Structural Grid:** Build a clean, high-density table grid divided strictly into horizontal operational cost centers: 
+  1. Human Resources (Freelance fees)
+  2. Production (Scenography, logistics, materials)
+  3. Post-Production (Editing, processing)
+  4. Licensing & Public Space Occupation (e.g., municipal licenses, EMEL parking reservations)
+- **Column Mechanics & Compliance Features:**
+  - **Budget Overview & Alerts:** Display Approved Budget vs. Actual Costs. Implement a strict programmatic alert styled in high-contrast Terracotta (#BF5700) if any actual cost row surpasses the agreed master client agreement.
+  - **Cost Approval Switches:** Include a brutalist checkbox/switch for "Cost Approval Status" per line item.
+  - **Pending Payments & Invoices:** Include an itemized column for pending invoices. Every invoice entry must feature a micro-action anchor to "Preview" (opening an inline file preview panel) or "Download" the invoice asset.
+
+### TAB 2: FINANCIAL MANAGEMENT (Portuguese Independent Tax Engine)
+Build a specialized, autonomous analytical calculator tailored strictly to Portuguese Tax Law for a "Trabalhador Independente" (Freelancer/Solo Entrepreneur in Portugal). It must feature three high-contrast data blocks calculating and tracking fiscal duties:
+
+1. **IVA (Imposto sobre o Valor Acrescentado):**
+   - Track and calculate quarterly IVA declarations (23% standard rate or alternative regimes).
+   - Display a clean breakdown of IVA Liquidado (collected from clients) vs. IVA Dedutível (paid on business expenses), showing the real-time net balance due to the AT (Autoridade Tributária).
+2. **Segurança Social (Quarterly Declarations):**
+   - Implement the standard calculation rule for independent workers under the simplified regime (calculation based on 70% of the average quarterly invoicing baseline, applying the standard 21.4% contribution rate).
+   - Display active monthly payment estimates and alert dates for the quarterly declarations.
+3. **IRS (Imposto sobre o Rendimento de Pessoas Singulares):**
+   - Account for Retenção na Fonte (withholding tax options, e.g., standard 25% or exemption rules under Artigo 101.º-B, n.º 1, al. a) do CIRS).
+   - Display an annual IRS tax bracket liability simulation based on current simplified regime coefficients (e.g., 0.75 for services) to prevent end-of-year fiscal surprises.
+
+Ensure both tabs use clean state hooks, maintain perfect responsiveness, and update the live preview workspace instantly.
