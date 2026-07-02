@@ -13,6 +13,8 @@ interface TeamMember {
   role: string;
   expertiseCategory: ExpertiseCategory;
   expertise: string;
+  email: string;
+  phone: string;
   skills: string[];
   bio: string;
   cv: string;
@@ -41,6 +43,8 @@ const SEED_TEAM: TeamMember[] = [
     role: "Creative Director",
     expertiseCategory: "Design",
     expertise: "Brand Strategy & Art Direction",
+    email: "c.figueiredo@vac.studio",
+    phone: "+351 912 345 001",
     skills: ["Brand Architecture", "Art Direction", "Campaign Design", "Visual Identity", "Brand Positioning"],
     bio: "A creative strategist with 12+ years shaping visual identities for European brands. Catarina leads with intuition, anchoring every project in cultural context and long-term brand equity. Former Creative Lead at BBDO Lisbon.",
     cv: "#", portfolio: "#",
@@ -57,6 +61,8 @@ const SEED_TEAM: TeamMember[] = [
     role: "Senior Designer",
     expertiseCategory: "Design",
     expertise: "Visual Design & Motion",
+    email: "m.santos@vac.studio",
+    phone: "+351 912 345 002",
     skills: ["Visual Design", "Motion Graphics", "Illustration", "Typography", "UI Systems"],
     bio: "Miguel translates strategy into precise, resonant form. His background in fine arts informs a design practice that is both systematic and emotionally alive. He has led visual systems for 40+ brand launches.",
     cv: "#", portfolio: "#",
@@ -73,6 +79,8 @@ const SEED_TEAM: TeamMember[] = [
     role: "Digital Strategist",
     expertiseCategory: "Strategy",
     expertise: "Digital & Content Strategy",
+    email: "j.pereira@vac.studio",
+    phone: "+351 912 345 003",
     skills: ["Social Media Strategy", "SEO & SEM", "Content Architecture", "Analytics", "Paid Media"],
     bio: "JP bridges brand voice with digital performance. A former data analyst turned strategist, he builds content ecosystems that perform across platforms without sacrificing editorial quality.",
     cv: "#", portfolio: "#",
@@ -89,6 +97,8 @@ const SEED_TEAM: TeamMember[] = [
     role: "Account Manager",
     expertiseCategory: "Management",
     expertise: "Client Relations & Brand Consulting",
+    email: "a.lima@vac.studio",
+    phone: "+351 912 345 004",
     skills: ["Client Management", "Project Delivery", "Brand Consulting", "Budgeting", "Stakeholder Communication"],
     bio: "Ana is the connective tissue between agency vision and client reality. Meticulous, warm, and strategically sharp, she ensures every deliverable lands with precision and every client relationship deepens over time.",
     cv: "#", portfolio: "#",
@@ -106,6 +116,8 @@ const SEED_TEAM: TeamMember[] = [
     role: "Senior Copywriter",
     expertiseCategory: "Copywriting",
     expertise: "Brand Language & Editorial",
+    email: "m.rodrigues@vac.studio",
+    phone: "+351 912 345 005",
     skills: ["Brand Copywriting", "Tone of Voice", "Editorial Strategy", "Naming", "Campaign Concepts"],
     bio: "Marta crafts language that makes brands feel inevitable. She has written for luxury hospitality, F&B, and cultural institutions across Portugal and Spain, developing tone-of-voice guidelines used by entire creative teams.",
     cv: "#", portfolio: "#",
@@ -122,6 +134,8 @@ const SEED_TEAM: TeamMember[] = [
     role: "Creative Producer",
     expertiseCategory: "Production",
     expertise: "Photography & Video Production",
+    email: "t.costa@vac.studio",
+    phone: "+351 912 345 006",
     skills: ["Photography", "Video Production", "Post-Production", "Set Direction", "Content Direction"],
     bio: "Tiago's visual storytelling captures the authentic texture of a brand's world. Equally at home on editorial shoots and commercial sets, he produces content that performs without looking produced.",
     cv: "#", portfolio: "#",
@@ -169,6 +183,18 @@ function TeamCard({ member, index }: { member: TeamMember; index: number }) {
         <div>
           <h3 className="text-[17px] font-bold text-foreground tracking-tight leading-tight">{member.name}</h3>
           <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">{member.expertise}</p>
+        </div>
+
+        {/* Contact ledger */}
+        <div className="flex flex-col gap-1 border border-black/8 px-3 py-2.5 bg-muted/40">
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest w-5 shrink-0">EM</span>
+            <span className="text-[10px] font-bold text-foreground">{member.email}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest w-5 shrink-0">PH</span>
+            <span className="text-[10px] font-bold text-foreground">{member.phone}</span>
+          </div>
         </div>
 
         {/* Skills */}
@@ -234,6 +260,8 @@ function AddCollaboratorModal({ onClose, onAdd }: { onClose: () => void; onAdd: 
       role: form.role.trim(),
       expertiseCategory: "Design",
       expertise: form.role.trim(),
+      email: "",
+      phone: "",
       skills: form.skills.split(",").map((s) => s.trim()).filter(Boolean),
       bio: form.bio.trim(),
       cv: form.cv.trim() || "#",
@@ -397,9 +425,9 @@ export default function TeamPage() {
             </span>
             <button
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 bg-foreground text-white text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 hover:bg-[#99CC33] transition-colors"
+              className="flex items-center gap-1.5 bg-[#99CC33] text-black text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 hover:bg-[#8ab82e] transition-colors"
             >
-              Add Collaborator
+              <span className="text-[13px] leading-none font-bold">+</span> Add Collaborator
             </button>
           </div>
         </div>
