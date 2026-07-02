@@ -1,0 +1,20 @@
+Act as an Elite UI/UX Engineer and CSS Grid Expert. Let's execute a highly precise layout and spacing optimization within our "/Human Resource" collaborator cards. We need to eliminate dead vertical whitespace and upgrade the projects ledger into a smart, dual-column carousel grid while keeping all cards perfectly synchronized on a horizontal axis. 
+
+Maintain our strict sharp-cornered (rounded-none), high-contrast minimalist white branding. Please implement the following precise updates:
+
+### 1. CONDENSE VERTICAL BIO SPACING
+- Locate the Biography text paragraph section inside the collaborator card.
+- **Tighten Margins:** Significantly decrease the vertical margin/padding both ABOVE the biography text (the space separating it from the skills badges row) and BELOW the biography text (the space separating it from the `/ CO-CREATED PROJECTS` section divider line). 
+- Make this layout contraction uniform across all cards so that the project divider lines continue to align perfectly on the same horizontal plane.
+
+### 2. DUAL-COLUMN PROJECTS MATRIX (3 x 2 Grid Lock)
+- Eliminate the large vertical whitespace gap inside the co-created projects list area.
+- **The 2-Column Split:** Convert the projects bullet/line-item listing from a single vertical list into a side-by-side dual-column layout grid (`grid grid-cols-2 gap-x-4`).
+- **Distribution Rule:** If a collaborator has up to 6 projects, display them in a parallel horizontal format: 3 projects neatly stacked on the left side column, and up to 3 projects directly in front of them stacked on the right side column.
+
+### 3. HORIZONTAL CAROUSEL OVERFLOW FOR > 6 PROJECTS
+- If a collaborator has more than 6 co-created projects, do not let the card grow vertically or push down the footer row.
+- **Inline Carousel Navigation:** Wrap the projects grid area in an inline horizontal scroll/slider container. Place a discrete, sharp, minimalist navigation arrow character or micro-icon (`>` in pure black) on the right edge of that project section.
+- **Behavior:** Clicking this arrow must scroll or slide the view horizontally to the left within the card boundaries to cleanly reveal the remaining projects, maintaining structural symmetry across all cards.
+
+Ensure all footer rows remain firmly pinned flush against the bottom edge of the cards. Update the code and refresh the live preview workspace.

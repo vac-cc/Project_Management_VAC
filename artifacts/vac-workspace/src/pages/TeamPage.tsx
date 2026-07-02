@@ -149,6 +149,65 @@ const SEED_TEAM: TeamMember[] = [
 
 const EXPERTISE_FILTERS: ExpertiseCategory[] = ["Design", "Strategy", "Production", "Management", "Copywriting"];
 
+// ── Projects Zone (dual-column grid, paginated carousel for >6) ──
+const PAGE_SIZE = 6; // 2 cols × 3 rows
+
+function ProjectsZone({ projects, accentBg }: { projects: string[]; accentBg: string }) {
+  const [page, setPage] = useState(0);
+  const totalPages = Math.ceil(projects.length / PAGE_SIZE);
+  const slice = projects.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
+  const dot = accentBg === "#e2e2e2" ? "#1a1a1a" : accentBg;
+
+  // Split slice into two columns of 3
+  const col1 = slice.slice(0, 3);
+  const col2 = slice.slice(3, 6);
+
+  return (
+    <div className="min-h-[120px] border-t border-border pt-3 mb-2">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">
+          / Co-Created Projects
+        </p>
+        {totalPages > 1 && (
+          <div className="flex items-center gap-1">
+            {page > 0 && (
+              <button
+                onClick={() => setPage((p) => p - 1)}
+                className="w-4 h-4 flex items-center justify-center text-[10px] font-bold text-muted-foreground hover:text-foreground border border-black/10 hover:border-black/30 transition-colors leading-none"
+              >
+                ‹
+              </button>
+            )}
+            <span className="text-[8px] font-bold text-muted-foreground tabular-nums">
+              {page + 1}/{totalPages}
+            </span>
+            {page < totalPages - 1 && (
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                className="w-4 h-4 flex items-center justify-center text-[10px] font-bold text-muted-foreground hover:text-foreground border border-black/10 hover:border-black/30 transition-colors leading-none"
+              >
+                ›
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 2-column project grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+        {[col1, col2].map((col, ci) =>
+          col.map((p) => (
+            <div key={`${ci}-${p}`} className="flex items-start gap-1.5 min-w-0">
+              <div className="w-1 h-1 mt-1 shrink-0" style={{ background: dot }} />
+              <span className="text-[9.5px] text-foreground leading-snug truncate">{p}</span>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Team card ────────────────────────────────────────────────
 function TeamCard({ member, index }: { member: TeamMember; index: number }) {
   const palette = EXPERTISE_PALETTE[member.expertiseCategory];
@@ -195,23 +254,13 @@ function TeamCard({ member, index }: { member: TeamMember; index: number }) {
           ))}
         </div>
 
-        {/* Zone C — Bio: fixed floor so short bios don't pull content up */}
-        <div className="min-h-[96px] mb-4">
+        {/* Zone C — Bio: tightened margins, floor preserved for sync */}
+        <div className="min-h-[80px] mb-2">
           <p className="text-[11px] text-muted-foreground leading-relaxed">{member.bio}</p>
         </div>
 
-        {/* Zone D — Co-Created Projects: fixed floor aligns divider line across all cards */}
-        <div className="min-h-[120px] border-t border-border pt-3.5 mb-4">
-          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em] mb-2">/ Co-Created Projects</p>
-          <div className="flex flex-col gap-1.5">
-            {member.projects.map((p) => (
-              <div key={p} className="flex items-center gap-1.5">
-                <div className="w-1 h-1 shrink-0" style={{ background: palette.bg === "#e2e2e2" ? "#1a1a1a" : palette.bg }} />
-                <span className="text-[10px] text-foreground leading-snug">{p}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* Zone D — Co-Created Projects: dual-column grid, paginated carousel for >6 */}
+        <ProjectsZone projects={member.projects} accentBg={palette.bg} />
 
         {/* Footer — anchored to bottom via mt-auto */}
         <div className="mt-auto border-t border-border pt-4 flex flex-col gap-1.5">
