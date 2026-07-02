@@ -1,0 +1,24 @@
+Act as an Elite Full-Stack Financial Engineer and Agency Operations Architect. Let's build a new, high-level Tab 3 inside our "FinancePage" titled "Agency Management". 
+
+This tab must aggregate the financial metrics of all individual projects (both active and past) into a centralized, C-suite executive dashboard to track the agency's global financial behavior, liquidity, and growth runway. Maintain our strict sharp-cornered (rounded-none), brutalist-minimalist identity using the Vāc Brand palette: Leaf Green (#99CC33), Terracotta (#BF5700), and Pure Black.
+
+Please implement the following global management modules:
+
+### 1. MACRO REVENUE CONSOLIDATION GRID (The Master Ledger)
+Build a master summary block at the top of Tab 3 that loops through all project data to display unified global indicators:
+- **Global Gross Revenue:** Sum of all Gross Revenue from every project in the agency's history.
+- **Global Operational Costs (COGS):** Combined sum of all human resources, production, and licensing costs across all projects.
+- **Global Net Liquid Cash:** The real, post-tax net profit accumulated by the agency, factoring in the Portuguese independent worker tax retentions calculated in Tab 2.
+
+### 2. AGENCY LIFELINE & CAPITAL EFFICIENCY METRICS
+Directly below the master ledger, implement an analytics engine tracking the agency's financial health:
+- **Agency Burn Rate Tracker:** A clean input/calculation panel displaying the fixed monthly operational costs of running the solo entrepreneurship in Portugal (e.g., software licenses, co-working spaces, basic accounting fees, mandatory monthly Segurança Social baselines).
+- **Liquidity Runway:** A reactive calculation displaying how many months the agency can survive based on current `Global Net Liquid Cash / Monthly Burn Rate`.
+- **Initial Investment Payback Progress:** A progress tracking component that maps current accumulated Net Profit against the initial investment capital used to launch the agency, displaying a clean percentage indicator toward full payback recovery.
+
+### 3. EXECUTIVE VISUAL GRID & ALERT ALGORITHMS
+- Structure this master management overview using high-contrast, clean rectangular blocks separated by crisp thin black borders (`border border-black`).
+- Apply **Leaf Green (#99CC33)** text or background highlights to show strong liquidity runways and positive payback progress milestones.
+- Dynamically trigger high-visibility **Terracotta (#BF5700)** warnings if the Liquidity Runway drops below a safe business threshold (e.g., less than 3 months of operational cash buffer).
+
+Ensure all data bindings from Tab 1 and Tab 2 flow seamlessly into this master view, updating the global agency state in real-time. Update the code and refresh the live preview workspace.

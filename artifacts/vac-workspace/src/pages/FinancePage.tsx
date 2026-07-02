@@ -8,11 +8,12 @@ import { PROJECTS, type Project } from "./ProjectsPage";
 
 // ── Tabs ─────────────────────────────────────────────────────
 
-type FinanceTab = "projects" | "fiscal";
+type FinanceTab = "projects" | "fiscal" | "agency";
 
 const FINANCE_TABS: { id: FinanceTab; label: string }[] = [
   { id: "projects", label: "Project Management" },
   { id: "fiscal", label: "Financial Management" },
+  { id: "agency", label: "Agency Management" },
 ];
 
 export default function FinancePage() {
@@ -55,6 +56,7 @@ export default function FinancePage() {
         <AnimatePresence mode="wait">
           {tab === "projects" && <ProjectManagementTab key="projects" />}
           {tab === "fiscal" && <FiscalManagementTab key="fiscal" />}
+          {tab === "agency" && <AgencyManagementTab key="agency" />}
         </AnimatePresence>
       </div>
     </div>
@@ -138,6 +140,33 @@ function buildCostCenters(project: Project, forceOverrun: boolean): CostCenter[]
 const MASTER_AGREEMENT: Record<string, number> = {
   "BPC-001": 42000,
 };
+
+function parseBudget(budget: string): number {
+  return Number(budget.replace(/[^0-9]/g, "")) || 0;
+}
+
+interface ProjectFinancials {
+  grossRevenue: number;
+  cogs: number;
+  grossProfit: number;
+  netProfit: number;
+}
+
+// Deterministic full-lifecycle financial snapshot for a single project — reuses the
+// same cost-center generator, revenue derivation, and overhead allocation rate as
+// Tab 1's ledger so every number in the agency-wide rollup (Tab 3) traces back to the
+// same source of truth. Mirrors ProjectManagementTab's masterBudget formula exactly:
+// projects without an explicit master agreement derive revenue from their own approved
+// cost total (+8% margin), never from the unrelated display-only `budget` label.
+function computeProjectFinancials(project: Project): ProjectFinancials {
+  const costCenters = buildCostCenters(project, project.id === "BPC-001");
+  const totalApproved = costCenters.reduce((s, c) => s + c.items.reduce((s2, i) => s2 + i.approved, 0), 0);
+  const cogs = costCenters.reduce((s, c) => s + c.items.reduce((s2, i) => s2 + i.actual, 0), 0);
+  const grossRevenue = MASTER_AGREEMENT[project.id] ?? Math.round(totalApproved * 1.08);
+  const grossProfit = grossRevenue - cogs;
+  const netProfit = grossProfit - grossProfit * OVERHEAD_ALLOCATION_RATE;
+  return { grossRevenue, cogs, grossProfit, netProfit };
+}
 
 function ProjectManagementTab() {
   const activeProjects = useMemo(() => PROJECTS.filter((p) => p.status === "active"), []);
@@ -752,5 +781,213 @@ function RetentionOption({ active, onClick, label, testId }: { active: boolean; 
       </span>
       <span className="text-[10px] font-bold text-foreground leading-tight">{label}</span>
     </button>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// TAB 3 — AGENCY MANAGEMENT (C-Suite Executive Dashboard)
+// ══════════════════════════════════════════════════════════════
+
+const RUNWAY_SAFE_THRESHOLD_MONTHS = 3;
+
+function AgencyManagementTab() {
+  const globals = useMemo(() => {
+    let grossRevenue = 0;
+    let cogs = 0;
+    let netProfit = 0;
+    for (const p of PROJECTS) {
+      const f = computeProjectFinancials(p);
+      grossRevenue += f.grossRevenue;
+      cogs += f.cogs;
+      netProfit += f.netProfit;
+    }
+    return {
+      grossRevenue,
+      cogs,
+      netProfit,
+      grossProfit: grossRevenue - cogs,
+      activeCount: PROJECTS.filter((p) => p.status === "active").length,
+      pastCount: PROJECTS.filter((p) => p.status === "past").length,
+    };
+  }, []);
+
+  // ── Burn rate tracker (editable fixed monthly costs of the solo entrepreneurship) ──
+  const [softwareLicenses, setSoftwareLicenses] = useState(180);
+  const [coworkingSpace, setCoworkingSpace] = useState(220);
+  const [accountingFees, setAccountingFees] = useState(90);
+  const [ssBaseline, setSsBaseline] = useState(220);
+  const monthlyBurn = softwareLicenses + coworkingSpace + accountingFees + ssBaseline;
+
+  const runwayMonths = monthlyBurn > 0 ? globals.netProfit / monthlyBurn : Infinity;
+  const runwayHealthy = runwayMonths >= RUNWAY_SAFE_THRESHOLD_MONTHS;
+
+  // ── Initial investment payback ──
+  const [initialInvestment, setInitialInvestment] = useState(15000);
+  const paybackPct = initialInvestment > 0 ? Math.min(100, Math.max(0, (globals.netProfit / initialInvestment) * 100)) : 0;
+  const paybackComplete = paybackPct >= 100;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="absolute inset-0 overflow-y-auto"
+    >
+      <div className="px-8 py-6 border-b border-border">
+        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Global Agency Financial Command Center</p>
+        <p className="text-[11px] text-muted-foreground mt-1 max-w-2xl">
+          Aggregates every active and past project into a single C-suite view of the agency's liquidity, growth runway, and capital recovery.
+        </p>
+      </div>
+
+      {/* ── Macro Revenue Consolidation Grid (Master Ledger) ── */}
+      <div className="px-8 pt-6">
+        <div data-testid="macro-revenue-grid" className="border-2 border-black rounded-none">
+          <div className="px-4 py-2.5 bg-black flex items-center justify-between">
+            <p className="text-[9px] font-bold text-white uppercase tracking-[0.16em]">Macro Revenue Consolidation — Master Ledger</p>
+            <p className="text-[8px] font-bold text-white/60 uppercase tracking-wider">
+              {globals.activeCount} Active · {globals.pastCount} Past · {globals.activeCount + globals.pastCount} Total Projects
+            </p>
+          </div>
+          <div className="grid grid-cols-3 divide-x divide-border">
+            <ScopeCell
+              label="Global Gross Revenue"
+              sub="All projects, agency lifetime"
+              value={globals.grossRevenue}
+              testId="global-gross-revenue"
+            />
+            <ScopeCell
+              label="Global Operational Costs"
+              sub="Combined HR, Production &amp; Licensing COGS"
+              value={globals.cogs}
+              testId="global-cogs"
+            />
+            <ScopeCell
+              label="Global Net Liquid Cash"
+              sub={`Post-tax, ${(OVERHEAD_ALLOCATION_RATE * 100).toFixed(1)}% overhead allocated`}
+              value={globals.netProfit}
+              tone={globals.netProfit >= 0 ? "green" : "terracotta"}
+              emphasize
+              testId="global-net-liquid-cash"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Agency Lifeline & Capital Efficiency ── */}
+      <div className="px-8 py-6">
+        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em] mb-3">Agency Lifeline &amp; Capital Efficiency</p>
+
+        <div className="border border-black rounded-none grid grid-cols-3 divide-x divide-black">
+          {/* Burn Rate Tracker */}
+          <div className="px-5 py-5 flex flex-col gap-4">
+            <div>
+              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Agency Burn Rate Tracker</p>
+              <p className="text-[9px] text-muted-foreground mt-1">Fixed monthly cost of running the solo entrepreneurship</p>
+            </div>
+
+            <div className="flex flex-col gap-2.5">
+              <BurnInput label="Software Licenses" value={softwareLicenses} onChange={setSoftwareLicenses} testId="input-burn-software" />
+              <BurnInput label="Co-working Space" value={coworkingSpace} onChange={setCoworkingSpace} testId="input-burn-coworking" />
+              <BurnInput label="Accounting Fees" value={accountingFees} onChange={setAccountingFees} testId="input-burn-accounting" />
+              <BurnInput label="Segurança Social Baseline" value={ssBaseline} onChange={setSsBaseline} testId="input-burn-ss" />
+            </div>
+
+            <div className="h-px bg-border mt-1" />
+
+            <div>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Total Monthly Burn</p>
+              <p className="text-[20px] font-bold text-foreground tracking-tight mt-1 tabular-nums" data-testid="total-monthly-burn">
+                €{monthlyBurn.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              </p>
+            </div>
+          </div>
+
+          {/* Liquidity Runway */}
+          <div className="px-5 py-5 flex flex-col gap-4">
+            <div>
+              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Liquidity Runway</p>
+              <p className="text-[9px] text-muted-foreground mt-1">Global Net Liquid Cash ÷ Monthly Burn Rate</p>
+            </div>
+
+            <div className="flex-1 flex flex-col items-start justify-center py-2">
+              <p
+                className="font-bold tracking-tight tabular-nums text-[40px] leading-none"
+                style={{ color: runwayHealthy ? "#99CC33" : "#BF5700" }}
+                data-testid="liquidity-runway-months"
+              >
+                {Number.isFinite(runwayMonths) ? runwayMonths.toFixed(1) : "∞"}
+              </p>
+              <p className="text-[10px] font-bold uppercase tracking-wide mt-1" style={{ color: runwayHealthy ? "#99CC33" : "#BF5700" }}>
+                Months of Runway
+              </p>
+            </div>
+
+            {!runwayHealthy && (
+              <div data-testid="runway-alert" className="px-3 py-2.5 bg-primary/10 border border-primary flex items-start gap-2">
+                <AlertTriangle size={13} className="text-primary shrink-0 mt-0.5" strokeWidth={2.5} />
+                <p className="text-[9px] font-bold uppercase tracking-wide text-primary leading-snug">
+                  Runway is below the {RUNWAY_SAFE_THRESHOLD_MONTHS}-month safety threshold — reduce burn or accelerate collections
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Initial Investment Payback Progress */}
+          <div className="px-5 py-5 flex flex-col gap-4">
+            <div>
+              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Initial Investment Payback</p>
+              <p className="text-[9px] text-muted-foreground mt-1">Net Profit accumulated vs. launch capital</p>
+            </div>
+
+            <div className="max-w-[220px]">
+              <BurnInput label="Initial Investment Capital" value={initialInvestment} onChange={setInitialInvestment} testId="input-initial-investment" />
+            </div>
+
+            <div>
+              <div className="flex items-baseline justify-between mb-1.5">
+                <p
+                  className="font-bold tracking-tight tabular-nums text-[22px]"
+                  style={{ color: paybackComplete ? "#99CC33" : "#1a1a1a" }}
+                  data-testid="payback-percentage"
+                >
+                  {paybackPct.toFixed(1)}%
+                </p>
+                <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Recovered</p>
+              </div>
+              <div className="h-3 border border-black w-full" data-testid="payback-progress-bar">
+                <div
+                  className="h-full transition-all duration-300"
+                  style={{ width: `${paybackPct}%`, backgroundColor: paybackComplete ? "#99CC33" : "#BF5700" }}
+                />
+              </div>
+              <p className="text-[9px] text-muted-foreground mt-1.5">
+                €{Math.max(0, globals.netProfit).toLocaleString(undefined, { maximumFractionDigits: 0 })} of €{initialInvestment.toLocaleString()} recovered
+                {paybackComplete && <span className="font-bold" style={{ color: "#99CC33" }}> — fully paid back</span>}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function BurnInput({ label, value, onChange, testId }: { label: string; value: number; onChange: (v: number) => void; testId: string }) {
+  return (
+    <div>
+      <label className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">{label}</label>
+      <div className="flex items-center border border-border focus-within:border-foreground transition-colors">
+        <span className="pl-2.5 text-[11px] text-muted-foreground font-bold">€</span>
+        <input
+          type="number"
+          value={value}
+          onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
+          data-testid={testId}
+          className="w-full px-2 py-1.5 text-[12px] font-bold text-foreground outline-none bg-transparent"
+        />
+      </div>
+    </div>
   );
 }
