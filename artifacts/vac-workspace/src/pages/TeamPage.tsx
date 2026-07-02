@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ExternalLink, FileText, Search, X, Upload } from "lucide-react";
+import { ExternalLink, FileText, Search, X, Upload, Phone, Mail } from "lucide-react";
 import { PATTERN_BANK, type PatternEntry } from "../data/assigneePalette";
 
 // ── Types ────────────────────────────────────────────────────
@@ -210,23 +210,25 @@ function TeamCard({ member, index }: { member: TeamMember; index: number }) {
           </div>
         </div>
 
-        {/* Contact & asset footer */}
-        <div className="border-t border-border pt-4 flex flex-col gap-2">
-          <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-bold text-foreground">{member.email}</span>
-            <span className="text-[10px] font-bold text-foreground">{member.phone}</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <a href={member.cv} onClick={(e) => e.preventDefault()}
-              className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground hover:text-[#99CC33] transition-colors">
-              <FileText size={10} />View CV
-            </a>
-            <span className="text-black/20 text-xs">·</span>
-            <a href={member.portfolio} onClick={(e) => e.preventDefault()}
-              className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground hover:text-[#99CC33] transition-colors">
-              <ExternalLink size={10} />Portfolio
-            </a>
-          </div>
+        {/* Asset & contact footer row */}
+        <div className="border-t border-border pt-4 flex flex-row items-center flex-wrap gap-y-2">
+          <a href={member.cv} onClick={(e) => e.preventDefault()}
+            className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground hover:text-[#99CC33] transition-colors whitespace-nowrap">
+            <FileText size={10} strokeWidth={2.5} />View CV
+          </a>
+          <span className="text-black/20 mx-3 text-xs select-none">·</span>
+          <a href={member.portfolio} onClick={(e) => e.preventDefault()}
+            className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground hover:text-[#99CC33] transition-colors whitespace-nowrap">
+            <ExternalLink size={10} strokeWidth={2.5} />Portfolio
+          </a>
+          <span className="text-black/20 mx-3 text-xs select-none">·</span>
+          <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground whitespace-nowrap">
+            <Phone size={10} strokeWidth={2.5} />{member.phone}
+          </span>
+          <span className="text-black/20 mx-3 text-xs select-none">·</span>
+          <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground whitespace-nowrap">
+            <Mail size={10} strokeWidth={2.5} />{member.email}
+          </span>
         </div>
 
       </div>
