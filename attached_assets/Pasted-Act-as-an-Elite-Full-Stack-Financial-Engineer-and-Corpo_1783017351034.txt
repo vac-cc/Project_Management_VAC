@@ -1,0 +1,23 @@
+Act as an Elite Full-Stack Financial Engineer and Corporate Operations Architect. Let's radically overhaul Tab 3 ("Agency Management") inside our "FinancePage" to pivot from broad metrics into a high-utility, hyper-realistic Everyday CEO Ledger. 
+
+We need to build a structural monthly breakdown and a macro yearly business health tracker equipped with dynamic performance KPI tracking against explicit target thresholds. Maintain our strict sharp-cornered (rounded-none), brutalist-minimalist wireframe using the Vāc Brand palette: Leaf Green (#99CC33), Terracotta (#BF5700), and Pure Black.
+
+Please implement the following exact sub-modules within the Agency Management Tab:
+
+### 1. THE MONTHLY CASH FLOW & INVOICE LEDGER (Everyday CEO View)
+Build a granular monthly breakdown grid organized chronologically. This section must display the agency's operational data on a month-to-month horizon:
+- **Project Invoices Issued (Faturação Emitida):** A clean line-item log tracking every invoice dispatched to clients during that specific month, displaying Invoice ID, Client Name, and Approval/Payment Status.
+- **Monthly Income (Recibo Entrado):** Total liquid cash that actually entered the agency's bank account within that month, automatically isolating current monthly Gross Inflow vs. Net Profit (after Portuguese independent tax withholdings from Tab 2).
+- **The Monthly KPI Target Monitor:** Program a data evaluation rule checking real-time performance against our **€10,000 Monthly Profit Target**. If the monthly net income meets or exceeds €10,000, highlight the container with a bold Leaf Green (#99CC33) border; if it falls below, keep it clean but flag the variance metrics in Terracotta (#BF5700).
+
+### 2. THE YEARLY AGENCY STATE & MACRO BUSINESS STRATEGY
+Directly adjacent or below the monthly ledger, build the Macro Yearly State Dashboard summarizing the global performance across the entire fiscal year:
+- **Accumulated Annual Ledger:** Display Total Yearly Gross Revenue, Total Yearly Operational Costs (combining all project expenses and monthly burn rates), and Total Yearly Net Profit.
+- **The Annual KPI Target Monitor:** Implement a visual gauge or progress indicator tracking our **€15,000 Yearly Profit Milestone**. (Note: Calculate the progress percentage dynamically based on accumulated net profit vs. the €15,000 target). 
+- Once the €15,000 target is unlocked, trigger a high-contrast executive milestone badge in Leaf Green (#99CC33) stating "ANNUAL PROFIT TARGET ACHIVED".
+
+### 3. EXECUTIVE LEDGER STYLING
+- Structure the monthly lines using a dense Excel-style interface with zero rounded corners.
+- Ensure all numbers (Gross, Tax, Net) update dynamically if a project's budget breakdown changes in Tab 1, giving the CEO an instantaneous, authentic view of the agency's overall corporate performance.
+
+Update the codebase and refresh the live preview workspace.

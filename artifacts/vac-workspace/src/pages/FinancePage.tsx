@@ -2,7 +2,8 @@ import React, { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Eye, Download, Check, AlertTriangle, X, FileText,
-  Users, HardHat, Film, Stamp, ChevronRight,
+  Users, HardHat, Film, Stamp, ChevronRight, ChevronLeft,
+  Receipt, TrendingUp, Award,
 } from "lucide-react";
 import { PROJECTS, type Project } from "./ProjectsPage";
 
@@ -788,6 +789,26 @@ function RetentionOption({ active, onClick, label, testId }: { active: boolean; 
 // TAB 3 — AGENCY MANAGEMENT (C-Suite Executive Dashboard)
 // ══════════════════════════════════════════════════════════════
 
+// Fixed "today" anchor so the seeded 2025–2026 demo dataset always resolves
+// to a consistent, presentable relative timeline (mirrors DashboardPage).
+const TODAY = new Date(2026, 6, 2); // 02 Jul 2026
+
+const MONTH_ABBR: Record<string, number> = {
+  Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+  Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
+};
+
+function parseMilestoneDate(raw: string): Date {
+  const parts = raw.trim().split(/\s+/);
+  const year = Number(parts[parts.length - 1]);
+  const month = MONTH_ABBR[parts[parts.length - 2]] ?? 0;
+  const day = Number(parts[0].split(/[–-]/)[0]);
+  return new Date(year, month, day);
+}
+
+const MONTHLY_PROFIT_TARGET = 10000;
+const YEARLY_PROFIT_TARGET = 15000;
+
 export const RUNWAY_SAFE_THRESHOLD_MONTHS = 3;
 
 // Default fixed monthly burn — mirrors AgencyManagementTab's initial burn-input
@@ -840,6 +861,17 @@ export const TAX_DEADLINES: TaxDeadline[] = [
   { id: "ss", label: "Segurança Social", sub: "Quarterly Declaration Window Opens", date: new Date(2026, 7, 15) },
 ];
 
+interface InvoiceRecord {
+  id: string;
+  client: string;
+  projectTitle: string;
+  amount: number;
+  date: Date;
+  status: "Paid" | "Pending" | "Overdue";
+  cogsShare: number;
+  netShare: number;
+}
+
 function AgencyManagementTab() {
   const globals = useMemo(() => {
     let grossRevenue = 0;
@@ -876,6 +908,96 @@ function AgencyManagementTab() {
   const paybackPct = initialInvestment > 0 ? Math.min(100, Math.max(0, (globals.netProfit / initialInvestment) * 100)) : 0;
   const paybackComplete = paybackPct >= 100;
 
+  // ── Everyday CEO Ledger: synthetic per-milestone client invoices ──
+  // Each project's grossRevenue is split evenly across its milestones and
+  // dated to the milestone date, so the monthly/yearly ledgers below stay
+  // dynamically wired to whatever budgets exist on Tab 1. cogsShare/netShare
+  // carry each invoice's proportional slice of that project's canonical
+  // computeProjectFinancials() output, so totals always reconcile exactly.
+  const invoices = useMemo(() => {
+    const list: InvoiceRecord[] = [];
+    for (const project of PROJECTS) {
+      const fin = computeProjectFinancials(project);
+      const n = project.milestones.length || 1;
+      const evenShare = Math.round(fin.grossRevenue / n / 10) * 10;
+      let allocated = 0;
+      project.milestones.forEach((m, idx) => {
+        const date = parseMilestoneDate(m.date);
+        const isLast = idx === n - 1;
+        const amount = isLast ? fin.grossRevenue - allocated : evenShare;
+        allocated += amount;
+        const fraction = fin.grossRevenue > 0 ? amount / fin.grossRevenue : 0;
+        let status: InvoiceRecord["status"];
+        if (date.getTime() >= TODAY.getTime()) {
+          status = "Pending";
+        } else {
+          status = seedFrom(`${project.id}-${m.label}-paid`) > 0.82 ? "Overdue" : "Paid";
+        }
+        list.push({
+          id: `INV-${project.id}-${idx + 1}`,
+          client: project.client,
+          projectTitle: project.title,
+          amount,
+          date,
+          status,
+          cogsShare: fin.cogs * fraction,
+          netShare: fin.netProfit * fraction,
+        });
+      });
+    }
+    return list.sort((a, b) => a.date.getTime() - b.date.getTime());
+  }, []);
+
+  const monthKeyOf = (d: Date) => `${d.getFullYear()}-${d.getMonth()}`;
+
+  const months = useMemo(() => {
+    const set = new Set(invoices.map((inv) => monthKeyOf(inv.date)));
+    return Array.from(set)
+      .sort()
+      .map((key) => {
+        const [year, month] = key.split("-").map(Number);
+        return { key, year, month };
+      });
+  }, [invoices]);
+
+  const defaultMonthIndex = useMemo(() => {
+    const todayKey = monthKeyOf(TODAY);
+    const exact = months.findIndex((mo) => mo.key === todayKey);
+    if (exact >= 0) return exact;
+    const upcoming = months.findIndex(
+      (mo) => mo.year > TODAY.getFullYear() || (mo.year === TODAY.getFullYear() && mo.month >= TODAY.getMonth())
+    );
+    return upcoming >= 0 ? upcoming : Math.max(0, months.length - 1);
+  }, [months]);
+
+  const [monthIndex, setMonthIndex] = useState(defaultMonthIndex);
+  const selectedMonth = months[monthIndex];
+  const monthLabel = selectedMonth
+    ? new Date(selectedMonth.year, selectedMonth.month, 1).toLocaleDateString("en-GB", { month: "long", year: "numeric" })
+    : "—";
+
+  const monthInvoices = useMemo(
+    () => (selectedMonth ? invoices.filter((inv) => monthKeyOf(inv.date) === selectedMonth.key) : []),
+    [invoices, selectedMonth]
+  );
+
+  const monthPaidInvoices = monthInvoices.filter((inv) => inv.status === "Paid");
+  const monthGrossInflow = monthPaidInvoices.reduce((s, inv) => s + inv.amount, 0);
+  const monthNetShare = monthPaidInvoices.reduce((s, inv) => s + inv.netShare, 0);
+  const monthNetProfit = monthNetShare - monthlyBurn;
+  const monthWithheld = monthGrossInflow - monthNetProfit;
+  const monthTargetMet = monthNetProfit >= MONTHLY_PROFIT_TARGET;
+  const monthVariance = monthNetProfit - MONTHLY_PROFIT_TARGET;
+
+  // ── Yearly Agency State (accumulated across the current fiscal year) ──
+  const currentYear = TODAY.getFullYear();
+  const yearInvoices = useMemo(() => invoices.filter((inv) => inv.date.getFullYear() === currentYear), [invoices, currentYear]);
+  const yearGrossRevenue = yearInvoices.reduce((s, inv) => s + inv.amount, 0);
+  const yearNetProfit = yearInvoices.reduce((s, inv) => s + inv.netShare, 0) - monthlyBurn * 12;
+  const yearOperationalCosts = yearGrossRevenue - yearNetProfit;
+  const yearProgressPct = Math.min(100, Math.max(0, (yearNetProfit / YEARLY_PROFIT_TARGET) * 100));
+  const yearTargetAchieved = yearNetProfit >= YEARLY_PROFIT_TARGET;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -885,10 +1007,204 @@ function AgencyManagementTab() {
       className="absolute inset-0 overflow-y-auto"
     >
       <div className="px-8 py-6 border-b border-border">
-        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Global Agency Financial Command Center</p>
+        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Everyday CEO Ledger</p>
         <p className="text-[11px] text-muted-foreground mt-1 max-w-2xl">
-          Aggregates every active and past project into a single C-suite view of the agency's liquidity, growth runway, and capital recovery.
+          Granular monthly cash flow and invoice tracking, plus the accumulated yearly agency state — the C-suite's day-to-day operating view of the business.
         </p>
+      </div>
+
+      {/* ── 1. Monthly Cash Flow & Invoice Ledger ── */}
+      <div className="px-8 pt-6">
+        <div
+          data-testid="monthly-cashflow-ledger"
+          className="rounded-none"
+          style={{ border: monthTargetMet ? "3px solid #99CC33" : "1px solid black" }}
+        >
+          <div className="px-4 py-2.5 bg-black flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Receipt size={13} className="text-white" strokeWidth={2.5} />
+              <p className="text-[9px] font-bold text-white uppercase tracking-[0.16em]">Monthly Cash Flow &amp; Invoice Ledger</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                data-testid="month-nav-prev"
+                onClick={() => setMonthIndex((i) => Math.max(0, i - 1))}
+                disabled={monthIndex <= 0}
+                className="p-1 border border-white/30 text-white disabled:opacity-30 hover:bg-white/10 transition-colors"
+              >
+                <ChevronLeft size={12} strokeWidth={2.5} />
+              </button>
+              <p className="text-[10px] font-bold text-white uppercase tracking-[0.14em] min-w-[110px] text-center" data-testid="month-label">
+                {monthLabel}
+              </p>
+              <button
+                type="button"
+                data-testid="month-nav-next"
+                onClick={() => setMonthIndex((i) => Math.min(months.length - 1, i + 1))}
+                disabled={monthIndex >= months.length - 1}
+                className="p-1 border border-white/30 text-white disabled:opacity-30 hover:bg-white/10 transition-colors"
+              >
+                <ChevronRight size={12} strokeWidth={2.5} />
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 divide-x divide-black">
+            {/* Faturação Emitida — Invoices Issued */}
+            <div className="flex flex-col">
+              <div className="px-4 py-2 bg-black/[0.03] border-b border-border">
+                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Project Invoices Issued — Faturação Emitida</p>
+              </div>
+              <div className="grid grid-cols-[1fr_1.2fr_0.8fr] px-4 py-1.5 border-b border-border bg-black/[0.02]">
+                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider">Invoice ID</p>
+                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider">Client</p>
+                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider text-right">Status</p>
+              </div>
+              <div className="max-h-[280px] overflow-y-auto">
+                {monthInvoices.length === 0 && (
+                  <p className="px-4 py-6 text-[10px] text-muted-foreground text-center">No invoices issued this month.</p>
+                )}
+                {monthInvoices.map((inv) => {
+                  const statusColor = inv.status === "Paid" ? "#99CC33" : inv.status === "Overdue" ? "#BF5700" : "#6b6b6b";
+                  return (
+                    <div
+                      key={inv.id}
+                      data-testid={`invoice-row-${inv.id}`}
+                      className="grid grid-cols-[1fr_1.2fr_0.8fr] px-4 py-2 border-b border-border/60 items-center"
+                    >
+                      <p className="text-[10px] font-bold text-foreground tabular-nums">{inv.id}</p>
+                      <div>
+                        <p className="text-[10px] font-bold text-foreground truncate">{inv.client}</p>
+                        <p className="text-[8px] text-muted-foreground truncate">{inv.projectTitle}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-bold tabular-nums" style={{ color: statusColor }}>€{inv.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                        <p className="text-[8px] font-bold uppercase tracking-wide" style={{ color: statusColor }}>{inv.status}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Monthly Income — Recibo Entrado + KPI Target Monitor */}
+            <div className="flex flex-col">
+              <div className="px-4 py-2 bg-black/[0.03] border-b border-border">
+                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Monthly Income — Recibo Entrado</p>
+              </div>
+
+              <div className="px-4 py-4 border-b border-border">
+                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Gross Inflow (Cash Received)</p>
+                <p className="text-[20px] font-bold text-foreground tracking-tight mt-1 tabular-nums" data-testid="monthly-gross-inflow">
+                  €{monthGrossInflow.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </p>
+              </div>
+
+              <div className="px-4 py-3 border-b border-border">
+                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Tax Withholding &amp; Fixed Burn Deducted</p>
+                <p className="text-[13px] font-bold text-muted-foreground tracking-tight mt-1 tabular-nums">
+                  −€{Math.max(0, monthWithheld).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </p>
+              </div>
+
+              <div className="px-4 py-4 border-b border-border">
+                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Net Profit (Post-Tax)</p>
+                <p
+                  className="font-bold tracking-tight mt-1 tabular-nums text-[26px]"
+                  style={{ color: monthTargetMet ? "#99CC33" : "#1a1a1a" }}
+                  data-testid="monthly-net-profit"
+                >
+                  {monthNetProfit < 0 ? "-€" : "€"}{Math.abs(monthNetProfit).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </p>
+              </div>
+
+              <div className="px-4 py-4 flex-1 flex flex-col justify-end">
+                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em] mb-1.5">
+                  Monthly KPI Target Monitor — €{MONTHLY_PROFIT_TARGET.toLocaleString()} Profit Target
+                </p>
+                {monthTargetMet ? (
+                  <div className="px-3 py-2 border-2" style={{ borderColor: "#99CC33" }} data-testid="monthly-kpi-status">
+                    <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "#99CC33" }}>
+                      ✓ Target Met — €{(monthNetProfit - MONTHLY_PROFIT_TARGET).toLocaleString(undefined, { maximumFractionDigits: 0 })} above target
+                    </p>
+                  </div>
+                ) : (
+                  <div className="px-3 py-2 border border-border" data-testid="monthly-kpi-status">
+                    <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "#BF5700" }}>
+                      Variance: −€{Math.abs(monthVariance).toLocaleString(undefined, { maximumFractionDigits: 0 })} below target
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 2. Yearly Agency State ── */}
+      <div className="px-8 pt-6">
+        <div data-testid="yearly-agency-state" className="border-2 border-black rounded-none">
+          <div className="px-4 py-2.5 bg-black flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <TrendingUp size={13} className="text-white" strokeWidth={2.5} />
+              <p className="text-[9px] font-bold text-white uppercase tracking-[0.16em]">Yearly Agency State — Macro Business Strategy {currentYear}</p>
+            </div>
+            {yearTargetAchieved && (
+              <div className="px-2.5 py-1 flex items-center gap-1.5" style={{ backgroundColor: "#99CC33" }} data-testid="yearly-target-badge">
+                <Award size={11} className="text-black" strokeWidth={2.5} />
+                <p className="text-[9px] font-bold text-black uppercase tracking-[0.1em]">Annual Profit Target Achieved</p>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-3 divide-x divide-border">
+            <ScopeCell
+              label="Yearly Gross Revenue"
+              sub="Accumulated invoices, calendar year"
+              value={yearGrossRevenue}
+              testId="yearly-gross-revenue"
+            />
+            <ScopeCell
+              label="Yearly Operational Costs"
+              sub="Project COGS, tax withholding &amp; annualized burn"
+              value={yearOperationalCosts}
+              testId="yearly-operational-costs"
+            />
+            <ScopeCell
+              label="Yearly Net Profit"
+              sub="Accumulated annual ledger"
+              value={yearNetProfit}
+              tone={yearNetProfit >= 0 ? "green" : "terracotta"}
+              emphasize
+              testId="yearly-net-profit"
+            />
+          </div>
+
+          <div className="px-4 py-4 border-t border-black">
+            <div className="flex items-baseline justify-between mb-1.5">
+              <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em]">
+                Annual KPI Target Monitor — €{YEARLY_PROFIT_TARGET.toLocaleString()} Yearly Profit Milestone
+              </p>
+              <p
+                className="text-[13px] font-bold tabular-nums"
+                style={{ color: yearTargetAchieved ? "#99CC33" : "#1a1a1a" }}
+                data-testid="yearly-progress-percentage"
+              >
+                {yearProgressPct.toFixed(1)}%
+              </p>
+            </div>
+            <div className="h-4 border border-black w-full" data-testid="yearly-progress-bar">
+              <div
+                className="h-full transition-all duration-300"
+                style={{ width: `${yearProgressPct}%`, backgroundColor: yearTargetAchieved ? "#99CC33" : "#BF5700" }}
+              />
+            </div>
+            <p className="text-[9px] text-muted-foreground mt-1.5">
+              €{Math.max(0, yearNetProfit).toLocaleString(undefined, { maximumFractionDigits: 0 })} of €{YEARLY_PROFIT_TARGET.toLocaleString()} yearly profit milestone accumulated
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* ── Macro Revenue Consolidation Grid (Master Ledger) ── */}
