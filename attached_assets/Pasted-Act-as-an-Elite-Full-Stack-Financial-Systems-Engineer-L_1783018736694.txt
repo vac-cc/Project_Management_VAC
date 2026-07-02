@@ -1,0 +1,24 @@
+Act as an Elite Full-Stack Financial Systems Engineer. Let's build a hyper-practical, hands-on "Financial Control Area" inside Tab 3 ("Agency Management") of our FinancePage. 
+
+This must function as a zero-fluff, daily working tool for the CEO to monitor cash flow, track software subscriptions, and manage Portuguese tax deadlines in real-time. Maintain our strict sharp-cornered (rounded-none), brutalist-minimalist wireframe using the Vāc Brand palette: Leaf Green (#99CC33), Terracotta (#BF5700), and Pure Black.
+
+Please implement the following exact operational architecture:
+
+### 1. THE CHRONOLOGICAL MONTHLY STATUS HUB (Cash In vs. Cash Out)
+Build a clean, high-contrast monthly statement block that aggregates all capital movements for the current operating month into two distinct, high-density ledger streams:
+- **CASH INFLOW (O que entra):** A clean vertical list aggregating revenue from all running projects. Each line must display the Project/Client Name (e.g., "Beach Pizza Cascais"), Invoice Reference, and the Gross Amount entered.
+- **CASH OUTFLOW (O que sai):** A synchronized vertical list tracking every single piece of capital leaving the agency bank account, categorized explicitly into three operational rows:
+  1. *SaaS & Agency Services:* Itemized lines tracking fixed tool subscriptions with clear logos/labels (e.g., Replit, Microsoft 365, Adobe Creative Cloud).
+  2. *Project Production Costs:* Payouts to the freelance network (Creative Directors, Designers, Copywriters) sourced from Tab 1.
+  3. *Tax Obligations:* Dedicated rows logging upcoming state payments derived from Tab 2 (Quarterly IVA, monthly Segurança Social baselines, and IRS retentions).
+
+### 2. THE REAL-TIME BANKROLL RUN RATE (The Bottom Line)
+- At the bottom of the monthly ledger, place a bold, full-width status line bounded by a thick Pure Black border (`border-t-2 border-b-2 border-black`).
+- **The Equation:** Calculate `Total Cash Inflow - Total Cash Outflow`. 
+- Display this as **"NET LIQUID POSITION / [CURRENT_MONTH]"**. If the balance is positive and hitting your operational margin targets, render the amount in bold Leaf Green (#99CC33). If the outflow is heavily draining the monthly runway, flag the net status in Terracotta (#BF5700).
+
+### 3. HANDS-ON INTERACTIVE MANAGEMENT CONTROLS
+- **Payment Toggles:** Every outflow line item (whether an invoice from a designer, a SaaS renewal, or a tax bill) must include an immediate interactive status pill: `[ PENDING ]` or `[ PAID ]`.
+- Clicking this pill must instantly flip its state, updating the real-time cash balance and net liquid position instantly without requiring page reloads.
+
+Ensure this layout remains completely flat, pragmatic, and heavily optimized for instant daily financial audits. Update the workspace and live preview.

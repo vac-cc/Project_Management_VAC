@@ -872,6 +872,65 @@ interface InvoiceRecord {
   netShare: number;
 }
 
+interface OutflowLine {
+  id: string;
+  category: "saas" | "production" | "tax";
+  label: string;
+  sub: string;
+  amount: number;
+}
+
+// Fixed recurring subscriptions run out of the agency's operating account.
+const SAAS_SUBSCRIPTIONS: { id: string; label: string; sub: string; amount: number }[] = [
+  { id: "saas-replit", label: "Replit — Core", sub: "Development & Deployment Platform", amount: 35 },
+  { id: "saas-m365", label: "Microsoft 365 — Business Standard", sub: "Email, Office Suite & Cloud Storage", amount: 12 },
+  { id: "saas-adobe", label: "Adobe Creative Cloud — All Apps", sub: "Design & Video Production Suite", amount: 60 },
+];
+
+function InflowRow({ inv }: { inv: InvoiceRecord }) {
+  const statusColor = inv.status === "Paid" ? "#99CC33" : inv.status === "Overdue" ? "#BF5700" : "#6b6b6b";
+  return (
+    <div className="flex items-center justify-between px-4 py-2 border-b border-border/60" data-testid={`inflow-row-${inv.id}`}>
+      <div className="min-w-0 pr-2">
+        <p className="text-[10px] font-bold text-foreground truncate">{inv.client}</p>
+        <p className="text-[8px] text-muted-foreground truncate">{inv.id} · {inv.projectTitle}</p>
+      </div>
+      <div className="text-right shrink-0">
+        <p className="text-[10px] font-bold tabular-nums" style={{ color: statusColor }}>
+          €{inv.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+        </p>
+        <p className="text-[8px] font-bold uppercase tracking-wide" style={{ color: statusColor }}>{inv.status}</p>
+      </div>
+    </div>
+  );
+}
+
+function OutflowRow({ line, paid, onToggle }: { line: OutflowLine; paid: boolean; onToggle: () => void }) {
+  const color = paid ? "#99CC33" : "#BF5700";
+  return (
+    <div className="flex items-center justify-between gap-2 px-4 py-2 border-b border-border/60" data-testid={`outflow-row-${line.id}`}>
+      <div className="min-w-0 pr-2">
+        <p className="text-[10px] font-bold text-foreground truncate">{line.label}</p>
+        <p className="text-[8px] text-muted-foreground truncate">{line.sub}</p>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <p className="text-[10px] font-bold text-foreground tabular-nums">
+          €{line.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+        </p>
+        <button
+          type="button"
+          data-testid={`outflow-toggle-${line.id}`}
+          onClick={onToggle}
+          className="px-2 py-1 text-[8px] font-bold uppercase tracking-wider border-2 transition-colors rounded-none"
+          style={{ borderColor: color, color, backgroundColor: paid ? "rgba(153,204,51,0.08)" : "rgba(191,87,0,0.08)" }}
+        >
+          {paid ? "Paid" : "Pending"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function AgencyManagementTab() {
   const globals = useMemo(() => {
     let grossRevenue = 0;
@@ -997,6 +1056,79 @@ function AgencyManagementTab() {
   const yearOperationalCosts = yearGrossRevenue - yearNetProfit;
   const yearProgressPct = Math.min(100, Math.max(0, (yearNetProfit / YEARLY_PROFIT_TARGET) * 100));
   const yearTargetAchieved = yearNetProfit >= YEARLY_PROFIT_TARGET;
+
+  // ── Financial Control Area: current operating month, hands-on cash audit ──
+  // Deliberately anchored to TODAY's calendar month (not the Monthly Ledger's
+  // navigable monthIndex above) — this is the "right now" daily working tool.
+  const currentMonthKey = monthKeyOf(TODAY);
+  const currentMonthLabel = TODAY.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  const currentMonthInvoices = useMemo(
+    () => invoices.filter((inv) => monthKeyOf(inv.date) === currentMonthKey).sort((a, b) => b.amount - a.amount),
+    [invoices, currentMonthKey]
+  );
+  const currentMonthPaidGross = currentMonthInvoices.filter((inv) => inv.status === "Paid").reduce((s, inv) => s + inv.amount, 0);
+  const totalCashInflow = currentMonthPaidGross;
+
+  // Project Production Costs — freelance-network payouts sourced from Tab 1's cost
+  // centers, restricted to line items that actually carry a vendor invoice.
+  const productionOutflows = useMemo(() => {
+    const lines: OutflowLine[] = [];
+    for (const project of PROJECTS.filter((p) => p.status === "active")) {
+      const hr = buildCostCenters(project, project.id === "BPC-001").find((c) => c.id === "hr");
+      if (!hr) continue;
+      for (const item of hr.items) {
+        if (item.invoice) {
+          lines.push({
+            id: `prod-${item.id}`,
+            category: "production",
+            label: item.label,
+            sub: `${project.client} · ${item.invoice.number}`,
+            amount: item.invoice.amount,
+          });
+        }
+      }
+    }
+    return lines;
+  }, []);
+
+  // Tax Obligations — derived from Tab 2's fiscal deadlines and burn-tracker baseline.
+  const ivaDeadline = TAX_DEADLINES.find((t) => t.id === "iva");
+  const irsEstimate = Math.round((currentMonthPaidGross * 0.115) / 10) * 10;
+  const ivaEstimate = Math.round((currentMonthPaidGross * 0.23) / 10) * 10;
+  const taxOutflows: OutflowLine[] = [
+    {
+      id: "tax-iva",
+      category: "tax",
+      label: "Quarterly IVA — Declaração Trimestral",
+      sub: ivaDeadline ? `Due ${ivaDeadline.date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}` : "Quarterly VAT declaration",
+      amount: ivaEstimate,
+    },
+    {
+      id: "tax-ss",
+      category: "tax",
+      label: "Segurança Social — Monthly Baseline",
+      sub: "Recurring independent-worker contribution",
+      amount: ssBaseline,
+    },
+    {
+      id: "tax-irs",
+      category: "tax",
+      label: "IRS Retention — Retenção na Fonte (11.5%)",
+      sub: "Withheld at source from client invoices",
+      amount: irsEstimate,
+    },
+  ];
+
+  const saasOutflows: OutflowLine[] = SAAS_SUBSCRIPTIONS.map((s) => ({ ...s, category: "saas" as const }));
+  const allOutflows = useMemo(() => [...saasOutflows, ...productionOutflows, ...taxOutflows], [productionOutflows, taxOutflows]);
+
+  const [outflowOverrides, setOutflowOverrides] = useState<Record<string, boolean>>({});
+  const isOutflowPaid = (line: OutflowLine) => outflowOverrides[line.id] ?? seedFrom(`${line.id}-outflow-default`) > 0.45;
+  const toggleOutflow = (line: OutflowLine) =>
+    setOutflowOverrides((prev) => ({ ...prev, [line.id]: !isOutflowPaid(line) }));
+
+  const totalCashOutflow = allOutflows.filter(isOutflowPaid).reduce((s, l) => s + l.amount, 0);
+  const netLiquidPosition = totalCashInflow - totalCashOutflow;
 
   return (
     <motion.div
@@ -1202,6 +1334,87 @@ function AgencyManagementTab() {
             </div>
             <p className="text-[9px] text-muted-foreground mt-1.5">
               €{Math.max(0, yearNetProfit).toLocaleString(undefined, { maximumFractionDigits: 0 })} of €{YEARLY_PROFIT_TARGET.toLocaleString()} yearly profit milestone accumulated
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 3. Financial Control Area — hands-on daily cash audit ── */}
+      <div className="px-8 pt-6">
+        <div data-testid="financial-control-area" className="border-2 border-black rounded-none">
+          <div className="px-4 py-2.5 bg-black flex items-center justify-between gap-3 flex-wrap">
+            <p className="text-[9px] font-bold text-white uppercase tracking-[0.16em]">Financial Control Area — {currentMonthLabel}</p>
+            <p className="text-[8px] font-bold text-white/60 uppercase tracking-wider">Zero-Fluff Daily Cash Audit</p>
+          </div>
+
+          <div className="grid grid-cols-2 divide-x divide-black">
+            {/* CASH INFLOW */}
+            <div className="flex flex-col">
+              <div className="px-4 py-2 bg-black/[0.03] border-b border-border flex items-center justify-between">
+                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Cash Inflow — O Que Entra</p>
+                <p className="text-[10px] font-bold tabular-nums" style={{ color: "#99CC33" }} data-testid="total-cash-inflow">
+                  €{totalCashInflow.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </p>
+              </div>
+              <div className="max-h-[360px] overflow-y-auto">
+                {currentMonthInvoices.length === 0 && (
+                  <p className="px-4 py-6 text-[10px] text-muted-foreground text-center">No invoices this month.</p>
+                )}
+                {currentMonthInvoices.map((inv) => (
+                  <InflowRow key={inv.id} inv={inv} />
+                ))}
+              </div>
+            </div>
+
+            {/* CASH OUTFLOW */}
+            <div className="flex flex-col">
+              <div className="px-4 py-2 bg-black/[0.03] border-b border-border flex items-center justify-between">
+                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Cash Outflow — O Que Sai</p>
+                <p className="text-[10px] font-bold tabular-nums" style={{ color: "#BF5700" }} data-testid="total-cash-outflow">
+                  €{totalCashOutflow.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </p>
+              </div>
+
+              <div className="max-h-[360px] overflow-y-auto">
+                <p className="px-4 pt-3 pb-1 text-[8px] font-bold text-muted-foreground uppercase tracking-wider">SaaS &amp; Agency Services</p>
+                {saasOutflows.map((line) => (
+                  <OutflowRow key={line.id} line={line} paid={isOutflowPaid(line)} onToggle={() => toggleOutflow(line)} />
+                ))}
+
+                <p className="px-4 pt-3 pb-1 text-[8px] font-bold text-muted-foreground uppercase tracking-wider">Project Production Costs</p>
+                {productionOutflows.length === 0 && (
+                  <p className="px-4 py-2 text-[9px] text-muted-foreground">No invoiced production payouts this cycle.</p>
+                )}
+                {productionOutflows.map((line) => (
+                  <OutflowRow key={line.id} line={line} paid={isOutflowPaid(line)} onToggle={() => toggleOutflow(line)} />
+                ))}
+
+                <p className="px-4 pt-3 pb-1 text-[8px] font-bold text-muted-foreground uppercase tracking-wider">Tax Obligations</p>
+                {taxOutflows.map((line) => (
+                  <OutflowRow key={line.id} line={line} paid={isOutflowPaid(line)} onToggle={() => toggleOutflow(line)} />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* NET LIQUID POSITION */}
+          <div
+            className="px-4 py-4 flex items-center justify-between gap-3 flex-wrap"
+            style={{ borderTop: "2px solid black", borderBottom: "2px solid black" }}
+            data-testid="net-liquid-position"
+          >
+            <div>
+              <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                Net Liquid Position / {currentMonthLabel}
+              </p>
+              <p className="text-[9px] text-muted-foreground mt-0.5">Total Cash Inflow − Total Cash Outflow (paid items only)</p>
+            </div>
+            <p
+              className="font-bold tracking-tight tabular-nums text-[28px]"
+              style={{ color: netLiquidPosition >= 0 ? "#99CC33" : "#BF5700" }}
+              data-testid="net-liquid-position-value"
+            >
+              {netLiquidPosition < 0 ? "-€" : "€"}{Math.abs(netLiquidPosition).toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </p>
           </div>
         </div>

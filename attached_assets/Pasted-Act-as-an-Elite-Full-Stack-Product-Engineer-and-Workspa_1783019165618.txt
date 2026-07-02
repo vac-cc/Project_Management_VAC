@@ -1,0 +1,24 @@
+Act as an Elite Full-Stack Product Engineer and Workspace Designer. Let's completely overhaul our main "Dashboard Page" to move away from passive data presentation. It must become a highly transactional, hyper-pragmatic, everyday command center built for high-speed executive action.
+
+Maintain our strict sharp-cornered (rounded-none), brutalist-minimalist wireframe using the Vāc Brand palette: Leaf Green (#99CC33), Terracotta (#BF5700), and Pure Black. 
+
+Please construct the Dashboard using these hyper-focused, interactive modules:
+
+### 1. THE DAILY ACTION HUB (Urgent Micro-Tasks & Approvals)
+- **Immediate Approvals Row:** Create a dynamic action row pulling pending high-priority requests from the Finance and Project sub-modules. Each item must be a clickable chip with an instant action trigger:
+  * e.g., "Designer Fee: €X [ APPROVE ]" (Updates the ledger in Tab 1 immediately).
+  * e.g., "Lisbon Municipality / EMEL Parking License [ CONFIRM PAY ]" (Toggles state and triggers outflow in Tab 3).
+- **The Operational Burn Checklist:** A clean, flat list showing the absolute next 5 upcoming technical deadlines across all active co-created projects. Each deadline row must feature a small toggle checkbox to mark it complete right from the Dashboard screen.
+
+### 2. REAL-TIME CASH FLOW & LIQUIDITY MONITOR (Macro Financial Pulse)
+- Create a horizontal, high-contrast bar at the top or center tracking the immediate financial health of the business:
+  * **Current Month Balance:** Displays real-time `Inflow - Outflow` for the operating month.
+  * **Progress to Monthly Target:** A clean progress metrics bar tracking the proximity to your €10,000 monthly profit milestone.
+  * **Progress to Yearly Target:** A percentage counter tracking the journey toward the €15,000 annual profit goal.
+- If a target is reached, the border flashes in Leaf Green (#99CC33). If an unexpected budget overflow happens downstairs in the project ledger, the financial monitor block immediately turns Terracotta (#BF5700).
+
+### 3. THE DAILY RUNWAY & BRIEFING SYNC (Right-Side Panel)
+- **The Briefing Room (Operational Syncs):** A streamlined, text-only timeline display showing today's client syncs, creative reviews, or pop-up operational checklists.
+- **Active Crew Blueprint:** A list of freelancers currently active today on active project pipelines. Clicking a collaborator’s profile avatar or text must instantly open the dynamic 3-zone communication feed (Zone C) pre-filtered for that project workspace.
+
+Ensure that all elements maintain a heavy, raw, corporate-grid structure with absolute zero rounded corners. Every interactive element must update the state globally and immediately. Update the code and refresh the live preview.
