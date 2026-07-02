@@ -210,25 +210,30 @@ function TeamCard({ member, index }: { member: TeamMember; index: number }) {
           </div>
         </div>
 
-        {/* Asset & contact footer row */}
-        <div className="border-t border-border pt-4 flex flex-row items-center flex-wrap gap-y-2">
-          <a href={member.cv} onClick={(e) => e.preventDefault()}
-            className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground hover:text-[#99CC33] transition-colors whitespace-nowrap">
-            <FileText size={10} strokeWidth={2.5} />View CV
-          </a>
-          <span className="text-black/20 mx-3 text-xs select-none">·</span>
-          <a href={member.portfolio} onClick={(e) => e.preventDefault()}
-            className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground hover:text-[#99CC33] transition-colors whitespace-nowrap">
-            <ExternalLink size={10} strokeWidth={2.5} />Portfolio
-          </a>
-          <span className="text-black/20 mx-3 text-xs select-none">·</span>
-          <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground whitespace-nowrap">
-            <Phone size={10} strokeWidth={2.5} />{member.phone}
-          </span>
-          <span className="text-black/20 mx-3 text-xs select-none">·</span>
-          <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground whitespace-nowrap">
-            <Mail size={10} strokeWidth={2.5} />{member.email}
-          </span>
+        {/* Two-line asset + contact footer */}
+        <div className="border-t border-border pt-4 mt-4 flex flex-col gap-1.5">
+          {/* Line 1: Resource anchors */}
+          <div className="flex items-center">
+            <a href={member.cv} onClick={(e) => e.preventDefault()}
+              className="inline-flex items-center gap-x-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground hover:text-[#99CC33] transition-colors whitespace-nowrap">
+              <FileText size={10} strokeWidth={2.5} />View CV
+            </a>
+            <span className="text-black/20 mx-3 text-xs select-none">·</span>
+            <a href={member.portfolio} onClick={(e) => e.preventDefault()}
+              className="inline-flex items-center gap-x-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground hover:text-[#99CC33] transition-colors whitespace-nowrap">
+              <ExternalLink size={10} strokeWidth={2.5} />Portfolio
+            </a>
+          </div>
+          {/* Line 2: Contact data */}
+          <div className="flex items-center">
+            <span className="inline-flex items-center gap-x-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground whitespace-nowrap">
+              <Mail size={10} strokeWidth={2.5} />{member.email}
+            </span>
+            <span className="text-black/20 mx-3 text-xs select-none">·</span>
+            <span className="inline-flex items-center gap-x-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground whitespace-nowrap">
+              <Phone size={10} strokeWidth={2.5} />{member.phone}
+            </span>
+          </div>
         </div>
 
       </div>

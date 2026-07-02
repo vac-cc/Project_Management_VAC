@@ -1,0 +1,22 @@
+Act as an Elite UI/UX Engineer and Senior Frontend Developer. Let's completely standardize and clean up the bottom asset row for every single card inside the "/Human Resource" grid, using a strict two-line architecture as verified from "Screenshot 2026-07-02 at 14.09.27.jpg".
+
+Please execute the following structural and layout adjustments:
+
+### 1. RIGID TWO-LINE FOOTER ARCHITECTURE (Per Collaborator Card)
+Dismantle any inconsistent horizontal flex wrap layouts at the bottom of the collaborator cards. Force all assets into a unified, 2-line vertical stacking system:
+- **Line 1 (Resource Anchors):** Must cleanly display **VIEW CV** and **PORTFOLIO** side-by-side, separated by a crisp mid-dot spacer character ( · ).
+- **Line 2 (Contact Data):** Directly underneath, display the **EMAIL** and **PHONE NUMBER** side-by-side on their own clean horizontal line, separated by a matching mid-dot spacer ( · ).
+
+### 2. COMPLETE VISUAL SYNC & ICONOGRAPHY
+- **Typography Normalization:** All text strings and links across both lines (VIEW CV, PORTFOLIO, PHONE, EMAIL) must strictly share the exact same styling: Uppercase transformation, high-contrast Pure Black bold text, and identical font size.
+- **Micro-Icon Alignment:** Every single element on both lines must be preceded by its own discrete, high-contrast micro-icon (SVG or font icon with matching stroke weights):
+  - Document/Paperclip icon for **VIEW CV**
+  - External link/Globe icon for **PORTFOLIO**
+  - Minimalist envelope/mail icon for **EMAIL**
+  - Sharp phone/handset icon for **PHONE NUMBER**
+- **Baseline Alignment:** Ensure each icon-text group uses `inline-flex items-center gap-x-1.5` so that icons and letters sit perfectly locked on the exact same typographic baseline, eliminating any vertical floating.
+
+### 3. BUFFER & SEPARATION CLEANUP
+- Add a clean, consistent vertical spacing margin (`mt-4` or equivalent padding) above Line 1 to separate this unified footer block gracefully from the "/ CO-CREATED PROJECTS" list above it, ensuring all 6 cards on the page align perfectly at the bottom grid line.
+
+Update the codebase and refresh the live preview workspace.
