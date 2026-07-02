@@ -253,6 +253,11 @@ function ProjectManagementTab() {
           </div>
         )}
 
+        {/* Total Project Financial Scope — executive dashboard header */}
+        <div className="px-8 pt-6">
+          <FinancialScopeSummary masterBudget={masterBudget} totalOperationalCosts={totalActual} />
+        </div>
+
         {/* Cost centers */}
         <div className="px-8 py-6 flex flex-col gap-8">
           {costCenters.map((center) => {
@@ -349,9 +354,6 @@ function ProjectManagementTab() {
               </div>
             );
           })}
-
-          {/* Total Project Financial Scope — executive audit-style ledger footer */}
-          <FinancialScopeSummary masterBudget={masterBudget} totalOperationalCosts={totalActual} />
         </div>
       </div>
 
@@ -435,7 +437,7 @@ function FinancialScopeSummary({ masterBudget, totalOperationalCosts }: { master
   const isHealthy = netMarginPct >= NET_MARGIN_HEALTHY_THRESHOLD;
 
   return (
-    <div data-testid="financial-scope-summary" className="border-t-2 border-b-2 border-black mt-2">
+    <div data-testid="financial-scope-summary" className="border-2 border-black rounded-none">
       <div className="px-4 py-2.5 bg-black flex items-center justify-between">
         <p className="text-[9px] font-bold text-white uppercase tracking-[0.16em]">Total Project Financial Scope</p>
         <p className="text-[8px] font-bold text-white/60 uppercase tracking-wider">Executive Summary</p>
