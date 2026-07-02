@@ -4,9 +4,9 @@ import { ExternalLink, FileText, Search, X, Upload, Phone, Mail } from "lucide-r
 import { PATTERN_BANK, type PatternEntry } from "../data/assigneePalette";
 
 // ── Types ────────────────────────────────────────────────────
-type ExpertiseCategory = "Design" | "Strategy" | "Production" | "Management" | "Copywriting";
+export type ExpertiseCategory = "Design" | "Strategy" | "Production" | "Management" | "Copywriting";
 
-interface TeamMember {
+export interface TeamMember {
   id: string;
   initials: string;
   name: string;
@@ -35,7 +35,7 @@ const EXPERTISE_PALETTE: Record<ExpertiseCategory, { bg: string; text: string }>
 };
 
 // ── Seed data ────────────────────────────────────────────────
-const SEED_TEAM: TeamMember[] = [
+export const SEED_TEAM: TeamMember[] = [
   {
     id: "CF",
     initials: "CF",

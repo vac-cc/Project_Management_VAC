@@ -73,7 +73,7 @@ interface InvoiceRef {
   amount: number;
 }
 
-interface CostLine {
+export interface CostLine {
   id: string;
   label: string;
   approved: number;
@@ -82,7 +82,7 @@ interface CostLine {
   invoice: InvoiceRef | null;
 }
 
-interface CostCenter {
+export interface CostCenter {
   id: string;
   label: string;
   icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
@@ -106,7 +106,7 @@ const CENTER_TEMPLATES: { id: string; label: string; icon: CostCenter["icon"]; i
   { id: "lic", label: "Licensing & Public Space Occupation", icon: Stamp, items: ["Municipal Filming License (CML)", "EMEL Parking Reservation", "Music Licensing (SPA)"] },
 ];
 
-function buildCostCenters(project: Project, forceOverrun: boolean): CostCenter[] {
+export function buildCostCenters(project: Project, forceOverrun: boolean): CostCenter[] {
   return CENTER_TEMPLATES.map((tpl) => {
     const itemCount = 2 + Math.round(seedFrom(project.id + tpl.id) * 2); // 2-3 items
     const items: CostLine[] = tpl.items.slice(0, itemCount).map((label, idx) => {
@@ -137,7 +137,7 @@ function buildCostCenters(project: Project, forceOverrun: boolean): CostCenter[]
 }
 
 // Approved master agreement values, keyed by project id
-const MASTER_AGREEMENT: Record<string, number> = {
+export const MASTER_AGREEMENT: Record<string, number> = {
   "BPC-001": 42000,
 };
 
@@ -145,7 +145,7 @@ function parseBudget(budget: string): number {
   return Number(budget.replace(/[^0-9]/g, "")) || 0;
 }
 
-interface ProjectFinancials {
+export interface ProjectFinancials {
   grossRevenue: number;
   cogs: number;
   grossProfit: number;
@@ -158,7 +158,7 @@ interface ProjectFinancials {
 // same source of truth. Mirrors ProjectManagementTab's masterBudget formula exactly:
 // projects without an explicit master agreement derive revenue from their own approved
 // cost total (+8% margin), never from the unrelated display-only `budget` label.
-function computeProjectFinancials(project: Project): ProjectFinancials {
+export function computeProjectFinancials(project: Project): ProjectFinancials {
   const costCenters = buildCostCenters(project, project.id === "BPC-001");
   const totalApproved = costCenters.reduce((s, c) => s + c.items.reduce((s2, i) => s2 + i.approved, 0), 0);
   const cogs = costCenters.reduce((s, c) => s + c.items.reduce((s2, i) => s2 + i.actual, 0), 0);
@@ -454,7 +454,7 @@ function ProjectManagementTab() {
 
 // Combined independent-worker tax retention + corporate overhead allocation
 // deducted from Gross Profit to reach true agency Net Profit.
-const OVERHEAD_ALLOCATION_RATE = 0.222;
+export const OVERHEAD_ALLOCATION_RATE = 0.222;
 const NET_MARGIN_HEALTHY_THRESHOLD = 20; // %
 
 function FinancialScopeSummary({ masterBudget, totalOperationalCosts }: { masterBudget: number; totalOperationalCosts: number }) {
@@ -788,7 +788,57 @@ function RetentionOption({ active, onClick, label, testId }: { active: boolean; 
 // TAB 3 — AGENCY MANAGEMENT (C-Suite Executive Dashboard)
 // ══════════════════════════════════════════════════════════════
 
-const RUNWAY_SAFE_THRESHOLD_MONTHS = 3;
+export const RUNWAY_SAFE_THRESHOLD_MONTHS = 3;
+
+// Default fixed monthly burn — mirrors AgencyManagementTab's initial burn-input
+// state (software + co-working + accounting + Segurança Social baseline) so the
+// Dashboard's runway snapshot always agrees with Tab 3 on first load.
+export const DEFAULT_MONTHLY_BURN = 180 + 220 + 90 + 220;
+
+export interface AgencyGlobals {
+  grossRevenue: number;
+  cogs: number;
+  grossProfit: number;
+  netProfit: number;
+  activeCount: number;
+  pastCount: number;
+}
+
+// Same aggregation AgencyManagementTab uses for its top-row KPIs — kept here as
+// a standalone export so other pages (e.g. the Dashboard) can read the agency-wide
+// rollup without duplicating the per-project financial derivation.
+export function computeAgencyGlobals(): AgencyGlobals {
+  let grossRevenue = 0;
+  let cogs = 0;
+  let netProfit = 0;
+  for (const p of PROJECTS) {
+    const f = computeProjectFinancials(p);
+    grossRevenue += f.grossRevenue;
+    cogs += f.cogs;
+    netProfit += f.netProfit;
+  }
+  return {
+    grossRevenue,
+    cogs,
+    netProfit,
+    grossProfit: grossRevenue - cogs,
+    activeCount: PROJECTS.filter((p) => p.status === "active").length,
+    pastCount: PROJECTS.filter((p) => p.status === "past").length,
+  };
+}
+
+export interface TaxDeadline {
+  id: string;
+  label: string;
+  sub: string;
+  date: Date;
+}
+
+// Mirrors the two Portuguese fiscal deadlines shown in Tab 2 (Financial Management).
+export const TAX_DEADLINES: TaxDeadline[] = [
+  { id: "iva", label: "IVA Declaration", sub: "Q2 2026 · Declaração Trimestral", date: new Date(2026, 7, 20) },
+  { id: "ss", label: "Segurança Social", sub: "Quarterly Declaration Window Opens", date: new Date(2026, 7, 15) },
+];
 
 function AgencyManagementTab() {
   const globals = useMemo(() => {

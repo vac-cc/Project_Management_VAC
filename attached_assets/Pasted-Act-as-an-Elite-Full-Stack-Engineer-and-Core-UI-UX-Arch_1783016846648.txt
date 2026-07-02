@@ -1,0 +1,25 @@
+Act as an Elite Full-Stack Engineer and Core UI/UX Architect. Let's redesign the master "Dashboard Page" to serve as the absolute central nervous system and everyday overview for the agency's CEO. 
+
+This page must aggregate and display cross-domain operational data, urgent actions, and high-level analytical insights harvested directly from the Project and Finance modules. Maintain our strict sharp-cornered (rounded-none), brutalist-minimalist wireframe using the Vāc Brand palette: Leaf Green (#99CC33), Terracotta (#BF5700), and Pure Black.
+
+Please construct the Dashboard layout using the following high-density executive widgets:
+
+### 1. THE CEO DAILY BRIEF (Top Row Macro KPIs)
+Position a commanding, full-width executive status row at the absolute top, aggregating real-time metrics from our sub-pages:
+- **Active Operations Tally:** Direct counter of live projects (linked to ProjectPage).
+- **Global Liquidity Runway:** Display current cash runway months remaining (harvested from the Agency Management Finance tab).
+- **Next Tax Milestone Badge:** High-visibility indicator displaying the closest upcoming Portuguese tax deadline (e.g., Quarterly IVA or Segurança Social submission date from Tab 2).
+
+### 2. CRITICAL ACTIONS & THE TASK MATRIX (Left Column)
+- **Urgent Action Items:** A checklist showing high-priority alerts across the entire app (e.g., "Over-budget Alert on Project X", "Cost Approval Pending for Designer Y").
+- **Cross-Project Master Timeline:** A condensed vertical feed pulling the absolute next 5 upcoming task deadlines or final delivery milestones across all project charts, ordered strictly by chronological proximity.
+
+### 3. EXECUTIVE SCHEDULE & COLLABORATOR FEED (Right Column)
+- **The Briefing Room (Meetings & Synchs):** A minimalist calendar widget tracking the day's strategic syncs, client presentations, and creative reviews.
+- **Active Crew Stream:** A micro-feed showing active freelance collaborators assigned across the live projects with quick-access links to their specific workspaces.
+
+### 4. RADICAL BRUTALIST GRID ARCHITECTURE
+- Encase each widget inside its own crisp, independent rectangular box bounded by a thin Pure Black outline. 
+- Use **Leaf Green (#99CC33)** for successful status completions and greenlit budgets. Use **Terracotta (#BF5700)** for overdue tasks, budget overruns, or urgent tax action items requiring immediate executive clearance.
+
+Ensure all widgets dynamically link back to their respective origin pages when clicked, allowing for fluid deep-dive navigation. Update the code and refresh the live preview workspace.
