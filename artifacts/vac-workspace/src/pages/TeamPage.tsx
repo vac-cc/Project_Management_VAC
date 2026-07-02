@@ -178,15 +178,16 @@ function TeamCard({ member, index }: { member: TeamMember; index: number }) {
       </div>
 
       {/* Body */}
-      <div className="px-5 py-5 flex-1 flex flex-col gap-4">
-        {/* Name — large editorial scale */}
-        <div>
+      <div className="px-5 py-5 flex-1 flex flex-col">
+
+        {/* Zone A — Name & subtitle: fixed height */}
+        <div className="min-h-[52px] mb-4">
           <h3 className="text-[17px] font-bold text-foreground tracking-tight leading-tight">{member.name}</h3>
           <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">{member.expertise}</p>
         </div>
 
-        {/* Skills */}
-        <div className="flex flex-wrap gap-1.5">
+        {/* Zone B — Skills badges: fixed floor so single-row tags don't collapse */}
+        <div className="min-h-[68px] mb-4 flex flex-wrap gap-1.5 content-start">
           {member.skills.map((skill) => (
             <span key={skill} className="text-[9px] font-bold uppercase tracking-wider border border-black/10 px-2 py-0.5 text-muted-foreground">
               {skill}
@@ -194,11 +195,13 @@ function TeamCard({ member, index }: { member: TeamMember; index: number }) {
           ))}
         </div>
 
-        {/* Bio */}
-        <p className="text-[11px] text-muted-foreground leading-relaxed">{member.bio}</p>
+        {/* Zone C — Bio: fixed floor so short bios don't pull content up */}
+        <div className="min-h-[96px] mb-4">
+          <p className="text-[11px] text-muted-foreground leading-relaxed">{member.bio}</p>
+        </div>
 
-        {/* Co-Created Projects ledger */}
-        <div className="border-t border-border pt-3.5">
+        {/* Zone D — Co-Created Projects: fixed floor aligns divider line across all cards */}
+        <div className="min-h-[120px] border-t border-border pt-3.5 mb-4">
           <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em] mb-2">/ Co-Created Projects</p>
           <div className="flex flex-col gap-1.5">
             {member.projects.map((p) => (
@@ -210,8 +213,8 @@ function TeamCard({ member, index }: { member: TeamMember; index: number }) {
           </div>
         </div>
 
-        {/* Two-line asset + contact footer */}
-        <div className="border-t border-border pt-4 mt-4 flex flex-col gap-1.5">
+        {/* Footer — anchored to bottom via mt-auto */}
+        <div className="mt-auto border-t border-border pt-4 flex flex-col gap-1.5">
           {/* Line 1: Resource anchors */}
           <div className="flex items-center">
             <a href={member.cv} onClick={(e) => e.preventDefault()}

@@ -1,0 +1,21 @@
+Act as an Elite CSS Grid Architect and Senior UI Engineer. Let's fix the structural asymmetry among the collaborator cards in our "/Human Resource" directory, as documented in "Screenshot 2026-07-02 at 14.14.43.jpg". 
+
+We must guarantee that every card has identical dimensions, and that all inner divider lines, text blocks, and footer rows align across the page in a perfect, continuous horizontal grid. Maintain our strict sharp-cornered (rounded-none), brutalist-minimalist white identity.
+
+Please engineer the following strict layout constraints inside the collaborator card component:
+
+### 1. UNIFORM CARD DIMENSIONS & SEGMENTED INTERNAL HEIGHT ZONES
+Force every collaborator card to calculate and match the exact same total height. To keep inner elements and horizontal divider lines perfectly aligned regardless of content length variations (as seen in "Screenshot 2026-07-02 at 14.14.43.jpg"), isolate and lock the vertical space of each section using strict min-height boundaries:
+
+- **Zone A (Name & Subtitle Metadata):** Allocate a uniform height container for the professional's name and corporate role subtitle so it never pushes the content below it downward.
+- **Zone B (Skills Badges Area):** Enforce a fixed or minimum height layout block for the skills tags (e.g., `min-h-[80px]`). If a collaborator has only 1 row of skills (like Miguel or João), the empty space below it must be preserved so the layout does not shrink or shift.
+- **Zone C (Biography Text Block):** Set a strict minimum height for the short biography paragraph block (e.g., `min-h-[100px]`). This accommodates multi-line descriptions uniformly across all 6 cards without creating asymmetrical vertical displacement.
+
+### 2. DIVIDER LINE SYNC & HISTORICAL LEDGER GRID LOCK
+- **The Horizontal Axis Lock:** The divider line preceding the "/ CO-CREATED PROJECTS" header must sit at the exact same pixel-level vertical coordinate on every single card. When viewing cards side-by-side, these lines must look like a single, continuous razor-sharp horizontal cut across the interface.
+- **Zone D (Projects Log Area):** Set a strict minimum height block for the "Co-Created Projects" list container (e.g., `min-h-[120px]`) to absorb variations in project counts or name lengths cleanly.
+
+### 3. RIGID FOOTER ANCHORING
+- Use a structural flex or grid layout configuration (`flex flex-col justify-between` or high-level grid assignment) on the parent card container so that our new 2-line Footer Row (VIEW CV, PORTFOLIO, EMAIL, PHONE) is pushed flush against the absolute bottom edge of every card, locking them into flawless, uniform horizontal symmetry.
+
+Review all outer borders to ensure no overlapping lines. Update the codebase and verify the live preview layout.
