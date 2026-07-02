@@ -1,6 +1,9 @@
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, X, Calendar, DollarSign, Tag, ArrowLeft, ExternalLink } from "lucide-react";
+import { Search, X, Calendar, DollarSign, Tag, ArrowLeft } from "lucide-react";
+import ZoneA from "../components/ZoneA";
+import ZoneB from "../components/ZoneB";
+import ZoneC from "../components/ZoneC";
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -448,7 +451,7 @@ function ProjectCard({
   );
 }
 
-// ── Project Drilldown Panel ──────────────────────────────────
+// ── Project Drilldown — full 3-zone workspace ────────────────
 
 function ProjectDrilldown({
   project,
@@ -457,136 +460,59 @@ function ProjectDrilldown({
   project: Project;
   onClose: () => void;
 }) {
+  const [pendingCount, setPendingCount] = useState(0);
+
+  const accentStyle =
+    project.status === "active"
+      ? { background: project.clientAccent, color: project.clientAccent === "#99CC33" ? "#000" : "#fff" }
+      : { background: "#e2e2e2", color: "#1a1a1a" };
+
   return (
     <motion.div
       key={project.id}
-      initial={{ opacity: 0, x: 32 }}
+      initial={{ opacity: 0, x: 40 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 32 }}
-      transition={{ duration: 0.22, ease: "easeOut" }}
-      className="absolute inset-0 z-40 bg-white overflow-y-auto"
+      exit={{ opacity: 0, x: 40 }}
+      transition={{ duration: 0.24, ease: "easeOut" }}
+      className="absolute inset-0 z-40 bg-white flex flex-col"
     >
-      {/* Drilldown header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-border px-8 py-4 flex items-center justify-between">
+      {/* ── Drilldown header bar ── */}
+      <div className="shrink-0 bg-white border-b border-border px-6 py-3 flex items-center justify-between gap-4">
         <button
           onClick={onClose}
-          className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+          className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
         >
-          <ArrowLeft size={12} strokeWidth={2.5} />Back to Projects
+          <ArrowLeft size={11} strokeWidth={2.5} />Back to Projects
         </button>
-        <div className="flex items-center gap-3">
+
+        {/* Project identity */}
+        <div className="flex items-center gap-3 min-w-0">
+          <ClientMonogram clientId={project.clientId} accent={project.clientAccent} />
+          <div className="min-w-0">
+            <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground truncate">{project.client}</p>
+            <p className="text-[13px] font-bold text-foreground tracking-tight leading-tight truncate">{project.title}</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 shrink-0">
+          {project.tags.slice(0, 2).map((t) => <TagChip key={t} label={t} />)}
           <span
-            className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 border border-black/10"
-            style={{
-              background: project.status === "active" ? project.clientAccent : "#e2e2e2",
-              color: project.status === "active" && project.clientAccent === "#99CC33" ? "#000" : project.status === "active" ? "#fff" : "#1a1a1a",
-            }}
+            className="text-[9px] font-bold uppercase tracking-wider px-2 py-1"
+            style={accentStyle}
           >
             {project.status === "active" ? "Active" : "Completed"}
           </span>
-          <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+          <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground border border-border px-2 py-1">
             {project.id}
           </span>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="px-8 py-8 max-w-5xl mx-auto grid grid-cols-3 gap-8">
-
-        {/* Left column — 2/3 */}
-        <div className="col-span-2 flex flex-col gap-8">
-
-          {/* Title block */}
-          <div>
-            <div className="flex items-center gap-3 mb-3">
-              <ClientMonogram clientId={project.clientId} accent={project.clientAccent} />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{project.client}</span>
-            </div>
-            <h1 className="text-[28px] font-bold text-foreground tracking-tight leading-tight mb-3">
-              {project.title}
-            </h1>
-            <div className="flex flex-wrap gap-1.5 mb-4">
-              {project.tags.map((t) => <TagChip key={t} label={t} />)}
-            </div>
-            <p className="text-[12px] text-muted-foreground leading-relaxed border-l-2 border-black/10 pl-4">
-              {project.brief}
-            </p>
-          </div>
-
-          {/* Deliverables */}
-          <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground mb-3">
-              / Deliverables
-            </p>
-            <div className="flex flex-col gap-2">
-              {project.deliverables.map((d, i) => (
-                <div key={i} className="flex items-center gap-3 border border-border px-3 py-2.5">
-                  <div className="w-1.5 h-1.5 shrink-0" style={{ background: project.clientAccent }} />
-                  <span className="text-[11px] font-bold text-foreground">{d}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Notes */}
-          <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground mb-3">
-              / Project Notes
-            </p>
-            <div className="border border-border p-4 bg-muted/20">
-              <p className="text-[11px] text-muted-foreground leading-relaxed">{project.notes}</p>
-            </div>
-          </div>
-
-        </div>
-
-        {/* Right column — 1/3 */}
-        <div className="flex flex-col gap-6">
-
-          {/* Budget */}
-          <div className="border border-border p-4">
-            <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground mb-2">/ Budget</p>
-            <p className="text-[22px] font-bold text-foreground tracking-tight">{project.budget}</p>
-          </div>
-
-          {/* Timeline */}
-          <div className="border border-border p-4">
-            <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground mb-3">/ Timeline</p>
-            <div className="flex flex-col gap-3">
-              {project.milestones.map((m, i) => (
-                <div key={i} className="flex flex-col gap-0.5">
-                  <span className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground">{m.label}</span>
-                  <span className="text-[11px] font-bold text-foreground">{m.date}</span>
-                  {i < project.milestones.length - 1 && (
-                    <div className="mt-2 h-px bg-border" />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Crew */}
-          <div className="border border-border p-4">
-            <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground mb-3">/ Assigned Crew</p>
-            <div className="flex flex-col gap-2">
-              {project.crew.map((c) => {
-                const col = CREW_COLORS[c] ?? { bg: "#e2e2e2", text: "#000" };
-                return (
-                  <div key={c} className="flex items-center gap-2">
-                    <span
-                      className="w-7 h-7 flex items-center justify-center text-[9px] font-bold shrink-0"
-                      style={{ background: col.bg, color: col.text }}
-                    >
-                      {c}
-                    </span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-foreground">{c}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-        </div>
+      {/* ── 3-zone workspace — exact dashboard layout ── */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        <ZoneA />
+        <ZoneB onCostSubmitted={() => setPendingCount((n) => n + 1)} />
+        <ZoneC pendingCount={pendingCount} />
       </div>
     </motion.div>
   );
