@@ -1,0 +1,27 @@
+Act as an Elite Frontend Architect and Senior UI Engineer. Let's engineer a full-screen, high-fidelity "Projects" management dashboard from scratch. Maintain our strict sharp-cornered (rounded-none), brutalist-minimalist white aesthetic with thin black border grids.
+
+Please build and implement the following application systems:
+
+### 1. TWO-TIER PROJECT LEDGER VIEWS (Summary vs. Fullscreen Drilldown)
+- **Summary Mode (Grid View):** Build a responsive grid displaying all current projects as compact, uniform structural cards.
+- **Detailed Mode (Fullscreen Modal/Page):** Clicking on any project card must seamlessly transition or slide open an immersive, full-screen project workspace panel, revealing the comprehensive, actionable operational engine of that project.
+
+### 2. ARCHITECTURAL SUMMARY CARD PAYLOAD
+Every project summary card must be structurally mapped to display the following high-level metadata at a glance for immediate team absorption:
+- **Client Metadata:** Client's Corporate Name and Logo placeholder.
+- **The Core Brief:** A concise, 2-line maximum text description summary of the project scope.
+- **Chronological Ledger:** Relevant project timeline milestones (e.g., Start Date, Launch Date, Deadlines).
+- **Financial Metric Badge:** High-level project budget/cost overview.
+- **The Operational Crew:** Synchronized micro-avatars or text initials of the agency team members assigned to the project.
+
+### 3. HISTORICAL SEGREGATION (Active vs. Finished Projects)
+- **Active Section:** Position a commanding container at the top of the workspace housing all ongoing, high-priority active agency projects.
+- **Finished Section:** Create a clean structural break below the active section using a thin black divider line. Below it, create an archive bucket titled `/ PAST PROJECTS` for completed assignments. These cards must use a slightly muted text/opacity layout but remain fully clickable for historical team reference and retro analyses.
+
+### 4. MULTI-FIELD SEARCH ENGINE
+- Integrate an elegant, full-width Search Bar at the absolute top of the Projects page.
+- **Cross-Field Indexing:** This search input must filter the grid in real-time across both active and past databases. It must listen to and match string queries for:
+  1. The **Client Name** (e.g., searching "Beach Pizza").
+  2. The **Type of Project / Tag** (e.g., searching "Live Marketing", "Pop-Up", "Branding").
+
+Ensure all interactive element states remain fluid and that the workspace live preview updates correctly.

@@ -6,15 +6,17 @@ import ZoneB from "../components/ZoneB";
 import ZoneC from "../components/ZoneC";
 import TeamPage from "./TeamPage";
 import ClientsPage from "./ClientsPage";
+import ProjectsPage from "./ProjectsPage";
 
 export default function Workspace() {
   const [pendingCount, setPendingCount] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [location] = useLocation();
 
-  const isTeam    = location === "/team";
-  const isClients = location === "/clients";
-  const isWorkspace = !isTeam && !isClients;
+  const isTeam     = location === "/team";
+  const isClients  = location === "/clients";
+  const isProjects = location === "/projects";
+  const isWorkspace = !isTeam && !isClients && !isProjects;
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background text-foreground font-sans">
@@ -25,8 +27,9 @@ export default function Workspace() {
 
       {/* Main content — expands smoothly when sidebar collapses */}
       <div className="flex flex-1 min-w-0 transition-all duration-300 overflow-hidden">
-        {isTeam    && <TeamPage />}
-        {isClients && <ClientsPage />}
+        {isTeam     && <TeamPage />}
+        {isClients  && <ClientsPage />}
+        {isProjects && <ProjectsPage />}
         {isWorkspace && (
           <>
             <ZoneA />
