@@ -1,0 +1,22 @@
+Act as an Elite Full-Stack Financial Systems Engineer. Let's restructure Tab 3 ("Agency Management") inside our "FinancePage" to implement a traditional, heavy-duty accounting spreadsheet layout optimized for high-speed daily audits.
+
+Maintain our strict sharp-cornered (rounded-none), high-contrast brutalist wireframe using the Vāc Brand palette: Leaf Green (#99CC33), Terracotta (#BF5700), and Pure Black.
+
+Please implement the following layout and database hierarchy:
+
+### 1. THE MASTHEAD: TRADITIONAL LEDGER OF "RECEITAS E RECEBIMENTOS" & "DESPESAS"
+Position a comprehensive, Excel-style accounting table at the absolute top of the page. This table must follow a traditional debit/credit structure, cleanly mapping the current month's financial behavior:
+- **RECEITAS (Income Streams):** Rows logging all incoming capital from active project invoices (e.g., Beach Pizza Cascais milestones), indicating Client Name, Invoice ID, and Gross Amount.
+- **DESPESAS FIXAS (Fixed Monthly Costs):** Rows dedicated to tracking predictable operational overhead with strict itemized lines for core software and services: Replit, Microsoft 365, Adobe Creative Cloud, and your mandatory Portuguese Seguridad Social or accounting baselines.
+- **DESPESAS VARIÁVEIS (Variable Costs):** Dynamic rows logging project-specific operational outflows, such as freelance contractor payouts (Creative Directors, Designers, Copywriters) and variable licensing fees (Câmara de Lisboa / EMEL parking reservations) pulled from Tab 1.
+- **TOTALS BAR:** A heavy, double-bordered row running at the bottom of the spreadsheet displaying: `Total Receitas`, `Total Despesas (Fixas + Variáveis)`, and the absolute `Net Liquid Position` (Saldo Líquido) for the month. Color code this final status text in bold Leaf Green (#99CC33) if positive, or Terracotta (#BF5700) if negative.
+
+### 2. SCROLL-DOWN HIERARCHY: YEARLY STATE & MACRO BUSINESS STRATEGY
+- **Push to Bottom:** Move the macro yearly tracking widgets, annual cumulative metrics, and long-term KPI monitors (such as tracking the €15,000 annual profit milestone) to the absolute bottom section of the page.
+- **The Rationale:** This removes non-immediate strategic metrics away from the primary executive viewport. The CEO can easily scroll down to review the global annual run-rate when needed, keeping the initial page load strictly focused on immediate daily cash flow management.
+
+### 3. INTERACTIVE LEDGER CONTROLS
+- Every row within the Despesas sections must feature an interactive `[ PENDING ]` or `[ PAID ]` action pill. 
+- Clicking this pill must instantly toggle its background style and re-calculate the mathematical totals and Net Liquid Position at the bottom of the table in real-time.
+
+Update the codebase and refresh the live preview workspace.

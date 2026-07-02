@@ -2,8 +2,8 @@ import React, { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Eye, Download, Check, AlertTriangle, X, FileText,
-  Users, HardHat, Film, Stamp, ChevronRight, ChevronLeft,
-  Receipt, TrendingUp, Award,
+  Users, HardHat, Film, Stamp, ChevronRight,
+  TrendingUp, Award, Calculator,
 } from "lucide-react";
 import { PROJECTS, type Project } from "./ProjectsPage";
 import { useOperationsState } from "@/state/OperationsState";
@@ -1110,50 +1110,6 @@ export function computeYearlyState(invoices: InvoiceRecord[], monthlyBurn: numbe
   };
 }
 
-function InflowRow({ inv }: { inv: InvoiceRecord }) {
-  const statusColor = inv.status === "Paid" ? "#99CC33" : inv.status === "Overdue" ? "#BF5700" : "#6b6b6b";
-  return (
-    <div className="flex items-center justify-between px-4 py-2 border-b border-border/60" data-testid={`inflow-row-${inv.id}`}>
-      <div className="min-w-0 pr-2">
-        <p className="text-[10px] font-bold text-foreground truncate">{inv.client}</p>
-        <p className="text-[8px] text-muted-foreground truncate">{inv.id} · {inv.projectTitle}</p>
-      </div>
-      <div className="text-right shrink-0">
-        <p className="text-[10px] font-bold tabular-nums" style={{ color: statusColor }}>
-          €{inv.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-        </p>
-        <p className="text-[8px] font-bold uppercase tracking-wide" style={{ color: statusColor }}>{inv.status}</p>
-      </div>
-    </div>
-  );
-}
-
-function OutflowRow({ line, paid, onToggle }: { line: OutflowLine; paid: boolean; onToggle: () => void }) {
-  const color = paid ? "#99CC33" : "#BF5700";
-  return (
-    <div className="flex items-center justify-between gap-2 px-4 py-2 border-b border-border/60" data-testid={`outflow-row-${line.id}`}>
-      <div className="min-w-0 pr-2">
-        <p className="text-[10px] font-bold text-foreground truncate">{line.label}</p>
-        <p className="text-[8px] text-muted-foreground truncate">{line.sub}</p>
-      </div>
-      <div className="flex items-center gap-2 shrink-0">
-        <p className="text-[10px] font-bold text-foreground tabular-nums">
-          €{line.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-        </p>
-        <button
-          type="button"
-          data-testid={`outflow-toggle-${line.id}`}
-          onClick={onToggle}
-          className="px-2 py-1 text-[8px] font-bold uppercase tracking-wider border-2 transition-colors rounded-none"
-          style={{ borderColor: color, color, backgroundColor: paid ? "rgba(153,204,51,0.08)" : "rgba(191,87,0,0.08)" }}
-        >
-          {paid ? "Paid" : "Pending"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function AgencyManagementTab() {
   const globals = useMemo(() => {
     let grossRevenue = 0;
@@ -1195,45 +1151,6 @@ function AgencyManagementTab() {
   // Dashboard's cash monitor reads the exact same invoice set.
   const invoices = useMemo(() => generateInvoices(), []);
 
-  const months = useMemo(() => {
-    const set = new Set(invoices.map((inv) => monthKeyOf(inv.date)));
-    return Array.from(set)
-      .sort()
-      .map((key) => {
-        const [year, month] = key.split("-").map(Number);
-        return { key, year, month };
-      });
-  }, [invoices]);
-
-  const defaultMonthIndex = useMemo(() => {
-    const todayKey = monthKeyOf(TODAY);
-    const exact = months.findIndex((mo) => mo.key === todayKey);
-    if (exact >= 0) return exact;
-    const upcoming = months.findIndex(
-      (mo) => mo.year > TODAY.getFullYear() || (mo.year === TODAY.getFullYear() && mo.month >= TODAY.getMonth())
-    );
-    return upcoming >= 0 ? upcoming : Math.max(0, months.length - 1);
-  }, [months]);
-
-  const [monthIndex, setMonthIndex] = useState(defaultMonthIndex);
-  const selectedMonth = months[monthIndex];
-  const monthLabel = selectedMonth
-    ? new Date(selectedMonth.year, selectedMonth.month, 1).toLocaleDateString("en-GB", { month: "long", year: "numeric" })
-    : "—";
-
-  const monthInvoices = useMemo(
-    () => (selectedMonth ? invoices.filter((inv) => monthKeyOf(inv.date) === selectedMonth.key) : []),
-    [invoices, selectedMonth]
-  );
-
-  const monthPaidInvoices = monthInvoices.filter((inv) => inv.status === "Paid");
-  const monthGrossInflow = monthPaidInvoices.reduce((s, inv) => s + inv.amount, 0);
-  const monthNetShare = monthPaidInvoices.reduce((s, inv) => s + inv.netShare, 0);
-  const monthNetProfit = monthNetShare - monthlyBurn;
-  const monthWithheld = monthGrossInflow - monthNetProfit;
-  const monthTargetMet = monthNetProfit >= MONTHLY_PROFIT_TARGET;
-  const monthVariance = monthNetProfit - MONTHLY_PROFIT_TARGET;
-
   // ── Yearly Agency State (accumulated across the current fiscal year) ──
   const currentYear = TODAY.getFullYear();
   const yearInvoices = useMemo(() => invoices.filter((inv) => inv.date.getFullYear() === currentYear), [invoices, currentYear]);
@@ -1269,6 +1186,20 @@ function AgencyManagementTab() {
   const isOutflowPaid = (line: OutflowLine) => resolveOutflowPaid(line, outflowOverrides);
   const toggleOutflow = (line: OutflowLine) => setOutflowPaid(line.id, !isOutflowPaid(line));
 
+  // ── Despesas Fixas vs. Variáveis — traditional ledger split. Fixas =
+  // recurring SaaS subscriptions + the mandatory Segurança Social baseline;
+  // Variáveis = everything that swings with project activity (freelance
+  // payouts, licenses/permits, IVA & IRS withholding). Together these cover
+  // exactly `allOutflows`, so paid totals still reconcile with netLiquidPosition. ──
+  const fixedOutflows = useMemo(
+    () => [...saasOutflows, ...taxOutflows.filter((l) => l.id === "tax-ss")],
+    [saasOutflows, taxOutflows]
+  );
+  const variableOutflows = useMemo(
+    () => [...productionOutflows, ...licensingOutflows, ...taxOutflows.filter((l) => l.id !== "tax-ss")],
+    [productionOutflows, licensingOutflows, taxOutflows]
+  );
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -1284,288 +1215,18 @@ function AgencyManagementTab() {
         </p>
       </div>
 
-      {/* ── 1. Monthly Cash Flow & Invoice Ledger ── */}
-      <div className="px-8 pt-6">
-        <div
-          data-testid="monthly-cashflow-ledger"
-          className="rounded-none"
-          style={{ border: monthTargetMet ? "3px solid #99CC33" : "1px solid black" }}
-        >
-          <div className="px-4 py-2.5 bg-black flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              <Receipt size={13} className="text-white" strokeWidth={2.5} />
-              <p className="text-[9px] font-bold text-white uppercase tracking-[0.16em]">Monthly Cash Flow &amp; Invoice Ledger</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                data-testid="month-nav-prev"
-                onClick={() => setMonthIndex((i) => Math.max(0, i - 1))}
-                disabled={monthIndex <= 0}
-                className="p-1 border border-white/30 text-white disabled:opacity-30 hover:bg-white/10 transition-colors"
-              >
-                <ChevronLeft size={12} strokeWidth={2.5} />
-              </button>
-              <p className="text-[10px] font-bold text-white uppercase tracking-[0.14em] min-w-[110px] text-center" data-testid="month-label">
-                {monthLabel}
-              </p>
-              <button
-                type="button"
-                data-testid="month-nav-next"
-                onClick={() => setMonthIndex((i) => Math.min(months.length - 1, i + 1))}
-                disabled={monthIndex >= months.length - 1}
-                className="p-1 border border-white/30 text-white disabled:opacity-30 hover:bg-white/10 transition-colors"
-              >
-                <ChevronRight size={12} strokeWidth={2.5} />
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 divide-x divide-black">
-            {/* Faturação Emitida — Invoices Issued */}
-            <div className="flex flex-col">
-              <div className="px-4 py-2 bg-black/[0.03] border-b border-border">
-                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Project Invoices Issued — Faturação Emitida</p>
-              </div>
-              <div className="grid grid-cols-[1fr_1.2fr_0.8fr] px-4 py-1.5 border-b border-border bg-black/[0.02]">
-                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider">Invoice ID</p>
-                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider">Client</p>
-                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider text-right">Status</p>
-              </div>
-              <div className="max-h-[280px] overflow-y-auto">
-                {monthInvoices.length === 0 && (
-                  <p className="px-4 py-6 text-[10px] text-muted-foreground text-center">No invoices issued this month.</p>
-                )}
-                {monthInvoices.map((inv) => {
-                  const statusColor = inv.status === "Paid" ? "#99CC33" : inv.status === "Overdue" ? "#BF5700" : "#6b6b6b";
-                  return (
-                    <div
-                      key={inv.id}
-                      data-testid={`invoice-row-${inv.id}`}
-                      className="grid grid-cols-[1fr_1.2fr_0.8fr] px-4 py-2 border-b border-border/60 items-center"
-                    >
-                      <p className="text-[10px] font-bold text-foreground tabular-nums">{inv.id}</p>
-                      <div>
-                        <p className="text-[10px] font-bold text-foreground truncate">{inv.client}</p>
-                        <p className="text-[8px] text-muted-foreground truncate">{inv.projectTitle}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[10px] font-bold tabular-nums" style={{ color: statusColor }}>€{inv.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
-                        <p className="text-[8px] font-bold uppercase tracking-wide" style={{ color: statusColor }}>{inv.status}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Monthly Income — Recibo Entrado + KPI Target Monitor */}
-            <div className="flex flex-col">
-              <div className="px-4 py-2 bg-black/[0.03] border-b border-border">
-                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Monthly Income — Recibo Entrado</p>
-              </div>
-
-              <div className="px-4 py-4 border-b border-border">
-                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Gross Inflow (Cash Received)</p>
-                <p className="text-[20px] font-bold text-foreground tracking-tight mt-1 tabular-nums" data-testid="monthly-gross-inflow">
-                  €{monthGrossInflow.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                </p>
-              </div>
-
-              <div className="px-4 py-3 border-b border-border">
-                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Tax Withholding &amp; Fixed Burn Deducted</p>
-                <p className="text-[13px] font-bold text-muted-foreground tracking-tight mt-1 tabular-nums">
-                  −€{Math.max(0, monthWithheld).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                </p>
-              </div>
-
-              <div className="px-4 py-4 border-b border-border">
-                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Net Profit (Post-Tax)</p>
-                <p
-                  className="font-bold tracking-tight mt-1 tabular-nums text-[26px]"
-                  style={{ color: monthTargetMet ? "#99CC33" : "#1a1a1a" }}
-                  data-testid="monthly-net-profit"
-                >
-                  {monthNetProfit < 0 ? "-€" : "€"}{Math.abs(monthNetProfit).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                </p>
-              </div>
-
-              <div className="px-4 py-4 flex-1 flex flex-col justify-end">
-                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em] mb-1.5">
-                  Monthly KPI Target Monitor — €{MONTHLY_PROFIT_TARGET.toLocaleString()} Profit Target
-                </p>
-                {monthTargetMet ? (
-                  <div className="px-3 py-2 border-2" style={{ borderColor: "#99CC33" }} data-testid="monthly-kpi-status">
-                    <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "#99CC33" }}>
-                      ✓ Target Met — €{(monthNetProfit - MONTHLY_PROFIT_TARGET).toLocaleString(undefined, { maximumFractionDigits: 0 })} above target
-                    </p>
-                  </div>
-                ) : (
-                  <div className="px-3 py-2 border border-border" data-testid="monthly-kpi-status">
-                    <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "#BF5700" }}>
-                      Variance: −€{Math.abs(monthVariance).toLocaleString(undefined, { maximumFractionDigits: 0 })} below target
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── 2. Yearly Agency State ── */}
-      <div className="px-8 pt-6">
-        <div data-testid="yearly-agency-state" className="border-2 border-black rounded-none">
-          <div className="px-4 py-2.5 bg-black flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              <TrendingUp size={13} className="text-white" strokeWidth={2.5} />
-              <p className="text-[9px] font-bold text-white uppercase tracking-[0.16em]">Yearly Agency State — Macro Business Strategy {currentYear}</p>
-            </div>
-            {yearTargetAchieved && (
-              <div className="px-2.5 py-1 flex items-center gap-1.5" style={{ backgroundColor: "#99CC33" }} data-testid="yearly-target-badge">
-                <Award size={11} className="text-black" strokeWidth={2.5} />
-                <p className="text-[9px] font-bold text-black uppercase tracking-[0.1em]">Annual Profit Target Achieved</p>
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-3 divide-x divide-border">
-            <ScopeCell
-              label="Yearly Gross Revenue"
-              sub="Accumulated invoices, calendar year"
-              value={yearGrossRevenue}
-              testId="yearly-gross-revenue"
-            />
-            <ScopeCell
-              label="Yearly Operational Costs"
-              sub="Project COGS, tax withholding &amp; annualized burn"
-              value={yearOperationalCosts}
-              testId="yearly-operational-costs"
-            />
-            <ScopeCell
-              label="Yearly Net Profit"
-              sub="Accumulated annual ledger"
-              value={yearNetProfit}
-              tone={yearNetProfit >= 0 ? "green" : "terracotta"}
-              emphasize
-              testId="yearly-net-profit"
-            />
-          </div>
-
-          <div className="px-4 py-4 border-t border-black">
-            <div className="flex items-baseline justify-between mb-1.5">
-              <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em]">
-                Annual KPI Target Monitor — €{YEARLY_PROFIT_TARGET.toLocaleString()} Yearly Profit Milestone
-              </p>
-              <p
-                className="text-[13px] font-bold tabular-nums"
-                style={{ color: yearTargetAchieved ? "#99CC33" : "#1a1a1a" }}
-                data-testid="yearly-progress-percentage"
-              >
-                {yearProgressPct.toFixed(1)}%
-              </p>
-            </div>
-            <div className="h-4 border border-black w-full" data-testid="yearly-progress-bar">
-              <div
-                className="h-full transition-all duration-300"
-                style={{ width: `${yearProgressPct}%`, backgroundColor: yearTargetAchieved ? "#99CC33" : "#BF5700" }}
-              />
-            </div>
-            <p className="text-[9px] text-muted-foreground mt-1.5">
-              €{Math.max(0, yearNetProfit).toLocaleString(undefined, { maximumFractionDigits: 0 })} of €{YEARLY_PROFIT_TARGET.toLocaleString()} yearly profit milestone accumulated
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* ── 3. Financial Control Area — hands-on daily cash audit ── */}
-      <div className="px-8 pt-6">
-        <div data-testid="financial-control-area" className="border-2 border-black rounded-none">
-          <div className="px-4 py-2.5 bg-black flex items-center justify-between gap-3 flex-wrap">
-            <p className="text-[9px] font-bold text-white uppercase tracking-[0.16em]">Financial Control Area — {currentMonthLabel}</p>
-            <p className="text-[8px] font-bold text-white/60 uppercase tracking-wider">Zero-Fluff Daily Cash Audit</p>
-          </div>
-
-          <div className="grid grid-cols-2 divide-x divide-black">
-            {/* CASH INFLOW */}
-            <div className="flex flex-col">
-              <div className="px-4 py-2 bg-black/[0.03] border-b border-border flex items-center justify-between">
-                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Cash Inflow — O Que Entra</p>
-                <p className="text-[10px] font-bold tabular-nums" style={{ color: "#99CC33" }} data-testid="total-cash-inflow">
-                  €{totalCashInflow.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                </p>
-              </div>
-              <div className="max-h-[360px] overflow-y-auto">
-                {currentMonthInvoices.length === 0 && (
-                  <p className="px-4 py-6 text-[10px] text-muted-foreground text-center">No invoices this month.</p>
-                )}
-                {currentMonthInvoices.map((inv) => (
-                  <InflowRow key={inv.id} inv={inv} />
-                ))}
-              </div>
-            </div>
-
-            {/* CASH OUTFLOW */}
-            <div className="flex flex-col">
-              <div className="px-4 py-2 bg-black/[0.03] border-b border-border flex items-center justify-between">
-                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Cash Outflow — O Que Sai</p>
-                <p className="text-[10px] font-bold tabular-nums" style={{ color: "#BF5700" }} data-testid="total-cash-outflow">
-                  €{totalCashOutflow.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                </p>
-              </div>
-
-              <div className="max-h-[360px] overflow-y-auto">
-                <p className="px-4 pt-3 pb-1 text-[8px] font-bold text-muted-foreground uppercase tracking-wider">SaaS &amp; Agency Services</p>
-                {saasOutflows.map((line) => (
-                  <OutflowRow key={line.id} line={line} paid={isOutflowPaid(line)} onToggle={() => toggleOutflow(line)} />
-                ))}
-
-                <p className="px-4 pt-3 pb-1 text-[8px] font-bold text-muted-foreground uppercase tracking-wider">Project Production Costs</p>
-                {productionOutflows.length === 0 && (
-                  <p className="px-4 py-2 text-[9px] text-muted-foreground">No invoiced production payouts this cycle.</p>
-                )}
-                {productionOutflows.map((line) => (
-                  <OutflowRow key={line.id} line={line} paid={isOutflowPaid(line)} onToggle={() => toggleOutflow(line)} />
-                ))}
-
-                <p className="px-4 pt-3 pb-1 text-[8px] font-bold text-muted-foreground uppercase tracking-wider">Licensing &amp; Permits</p>
-                {licensingOutflows.length === 0 && (
-                  <p className="px-4 py-2 text-[9px] text-muted-foreground">No invoiced permits or licenses this cycle.</p>
-                )}
-                {licensingOutflows.map((line) => (
-                  <OutflowRow key={line.id} line={line} paid={isOutflowPaid(line)} onToggle={() => toggleOutflow(line)} />
-                ))}
-
-                <p className="px-4 pt-3 pb-1 text-[8px] font-bold text-muted-foreground uppercase tracking-wider">Tax Obligations</p>
-                {taxOutflows.map((line) => (
-                  <OutflowRow key={line.id} line={line} paid={isOutflowPaid(line)} onToggle={() => toggleOutflow(line)} />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* NET LIQUID POSITION */}
-          <div
-            className="px-4 py-4 flex items-center justify-between gap-3 flex-wrap"
-            style={{ borderTop: "2px solid black", borderBottom: "2px solid black" }}
-            data-testid="net-liquid-position"
-          >
-            <div>
-              <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                Net Liquid Position / {currentMonthLabel}
-              </p>
-              <p className="text-[9px] text-muted-foreground mt-0.5">Total Cash Inflow − Total Cash Outflow (paid items only)</p>
-            </div>
-            <p
-              className="font-bold tracking-tight tabular-nums text-[28px]"
-              style={{ color: netLiquidPosition >= 0 ? "#99CC33" : "#BF5700" }}
-              data-testid="net-liquid-position-value"
-            >
-              {netLiquidPosition < 0 ? "-€" : "€"}{Math.abs(netLiquidPosition).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* ── MASTHEAD: Traditional Ledger of Receitas e Recebimentos & Despesas ── */}
+      <MastheadLedger
+        currentMonthLabel={currentMonthLabel}
+        currentMonthInvoices={currentMonthInvoices}
+        totalCashInflow={totalCashInflow}
+        fixedOutflows={fixedOutflows}
+        variableOutflows={variableOutflows}
+        totalCashOutflow={totalCashOutflow}
+        netLiquidPosition={netLiquidPosition}
+        isOutflowPaid={isOutflowPaid}
+        toggleOutflow={toggleOutflow}
+      />
 
       {/* ── Macro Revenue Consolidation Grid (Master Ledger) ── */}
       <div className="px-8 pt-6">
@@ -1696,7 +1357,256 @@ function AgencyManagementTab() {
           </div>
         </div>
       </div>
+
+      {/* ── Yearly Agency State — pushed to the bottom of the page. Macro,
+          long-term strategy is deliberately kept out of the immediate daily
+          viewport; the CEO scrolls here only when reviewing the annual run-rate. ── */}
+      <div className="px-8 pb-8">
+        <div data-testid="yearly-agency-state" className="border-2 border-black rounded-none">
+          <div className="px-4 py-2.5 bg-black flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <TrendingUp size={13} className="text-white" strokeWidth={2.5} />
+              <p className="text-[9px] font-bold text-white uppercase tracking-[0.16em]">Yearly Agency State — Macro Business Strategy {currentYear}</p>
+            </div>
+            {yearTargetAchieved && (
+              <div className="px-2.5 py-1 flex items-center gap-1.5" style={{ backgroundColor: "#99CC33" }} data-testid="yearly-target-badge">
+                <Award size={11} className="text-black" strokeWidth={2.5} />
+                <p className="text-[9px] font-bold text-black uppercase tracking-[0.1em]">Annual Profit Target Achieved</p>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-3 divide-x divide-border">
+            <ScopeCell
+              label="Yearly Gross Revenue"
+              sub="Accumulated invoices, calendar year"
+              value={yearGrossRevenue}
+              testId="yearly-gross-revenue"
+            />
+            <ScopeCell
+              label="Yearly Operational Costs"
+              sub="Project COGS, tax withholding &amp; annualized burn"
+              value={yearOperationalCosts}
+              testId="yearly-operational-costs"
+            />
+            <ScopeCell
+              label="Yearly Net Profit"
+              sub="Accumulated annual ledger"
+              value={yearNetProfit}
+              tone={yearNetProfit >= 0 ? "green" : "terracotta"}
+              emphasize
+              testId="yearly-net-profit"
+            />
+          </div>
+
+          <div className="px-4 py-4 border-t border-black">
+            <div className="flex items-baseline justify-between mb-1.5">
+              <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em]">
+                Annual KPI Target Monitor — €{YEARLY_PROFIT_TARGET.toLocaleString()} Yearly Profit Milestone
+              </p>
+              <p
+                className="text-[13px] font-bold tabular-nums"
+                style={{ color: yearTargetAchieved ? "#99CC33" : "#1a1a1a" }}
+                data-testid="yearly-progress-percentage"
+              >
+                {yearProgressPct.toFixed(1)}%
+              </p>
+            </div>
+            <div className="h-4 border border-black w-full" data-testid="yearly-progress-bar">
+              <div
+                className="h-full transition-all duration-300"
+                style={{ width: `${yearProgressPct}%`, backgroundColor: yearTargetAchieved ? "#99CC33" : "#BF5700" }}
+              />
+            </div>
+            <p className="text-[9px] text-muted-foreground mt-1.5">
+              €{Math.max(0, yearNetProfit).toLocaleString(undefined, { maximumFractionDigits: 0 })} of €{YEARLY_PROFIT_TARGET.toLocaleString()} yearly profit milestone accumulated
+            </p>
+          </div>
+        </div>
+      </div>
     </motion.div>
+  );
+}
+
+// ── Masthead: traditional debit/credit spreadsheet ledger, "Receitas e
+// Recebimentos" (income) vs. "Despesas" (fixed & variable expenses), with a
+// heavy double-bordered totals bar. Interactive PENDING/PAID pills recompute
+// the totals bar in real time via the shared outflowOverrides context. ──
+function MastheadLedger({
+  currentMonthLabel,
+  currentMonthInvoices,
+  totalCashInflow,
+  fixedOutflows,
+  variableOutflows,
+  totalCashOutflow,
+  netLiquidPosition,
+  isOutflowPaid,
+  toggleOutflow,
+}: {
+  currentMonthLabel: string;
+  currentMonthInvoices: InvoiceRecord[];
+  totalCashInflow: number;
+  fixedOutflows: OutflowLine[];
+  variableOutflows: OutflowLine[];
+  totalCashOutflow: number;
+  netLiquidPosition: number;
+  isOutflowPaid: (line: OutflowLine) => boolean;
+  toggleOutflow: (line: OutflowLine) => void;
+}) {
+  const fixedPaidTotal = fixedOutflows.filter(isOutflowPaid).reduce((s, l) => s + l.amount, 0);
+  const variablePaidTotal = variableOutflows.filter(isOutflowPaid).reduce((s, l) => s + l.amount, 0);
+
+  return (
+    <div className="px-8 pt-6">
+      <div data-testid="masthead-ledger" className="border-2 border-black rounded-none">
+        <div className="px-4 py-2.5 bg-black flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <Calculator size={13} className="text-white" strokeWidth={2.5} />
+            <p className="text-[9px] font-bold text-white uppercase tracking-[0.16em]">
+              Ledger of Receitas e Recebimentos &amp; Despesas — {currentMonthLabel}
+            </p>
+          </div>
+          <p className="text-[8px] font-bold text-white/60 uppercase tracking-wider">High-Speed Daily Audit</p>
+        </div>
+
+        {/* RECEITAS */}
+        <LedgerSectionLabel label="Receitas — Income Streams" testId="ledger-receitas-label" />
+        <div className="grid grid-cols-[1.6fr_1fr_0.9fr_0.7fr] px-4 py-1.5 border-b border-black bg-black/[0.03]">
+          <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider">Client / Project</p>
+          <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider">Invoice ID</p>
+          <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider text-right">Gross Amount</p>
+          <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider text-right">Status</p>
+        </div>
+        <div className="max-h-[280px] overflow-y-auto">
+          {currentMonthInvoices.length === 0 && (
+            <p className="px-4 py-6 text-[10px] text-muted-foreground text-center">No invoices logged this month.</p>
+          )}
+          {currentMonthInvoices.map((inv) => {
+            const statusColor = inv.status === "Paid" ? "#99CC33" : inv.status === "Overdue" ? "#BF5700" : "#6b6b6b";
+            return (
+              <div
+                key={inv.id}
+                data-testid={`ledger-receita-row-${inv.id}`}
+                className="grid grid-cols-[1.6fr_1fr_0.9fr_0.7fr] px-4 py-2 border-b border-border/60 items-center"
+              >
+                <div className="min-w-0 pr-2">
+                  <p className="text-[10px] font-bold text-foreground truncate">{inv.client}</p>
+                  <p className="text-[8px] text-muted-foreground truncate">{inv.projectTitle}</p>
+                </div>
+                <p className="text-[10px] font-bold text-foreground tabular-nums">{inv.id}</p>
+                <p className="text-[10px] font-bold text-foreground tabular-nums text-right">
+                  €{inv.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </p>
+                <p className="text-[8px] font-bold uppercase tracking-wide text-right" style={{ color: statusColor }}>
+                  {inv.status}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* DESPESAS FIXAS */}
+        <LedgerSectionLabel label="Despesas Fixas — Fixed Monthly Costs" testId="ledger-despesas-fixas-label" />
+        <div className="grid grid-cols-[1.8fr_0.9fr_0.9fr] px-4 py-1.5 border-b border-black bg-black/[0.03]">
+          <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider">Line Item</p>
+          <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider text-right">Amount</p>
+          <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider text-right">Status</p>
+        </div>
+        <div>
+          {fixedOutflows.map((line) => (
+            <LedgerDespesaRow key={line.id} line={line} paid={isOutflowPaid(line)} onToggle={() => toggleOutflow(line)} />
+          ))}
+        </div>
+
+        {/* DESPESAS VARIÁVEIS */}
+        <LedgerSectionLabel label="Despesas Variáveis — Variable Project Costs" testId="ledger-despesas-variaveis-label" />
+        <div className="grid grid-cols-[1.8fr_0.9fr_0.9fr] px-4 py-1.5 border-b border-black bg-black/[0.03]">
+          <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider">Line Item</p>
+          <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider text-right">Amount</p>
+          <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider text-right">Status</p>
+        </div>
+        <div className="max-h-[320px] overflow-y-auto">
+          {variableOutflows.length === 0 && (
+            <p className="px-4 py-4 text-[9px] text-muted-foreground">No variable outflows logged this cycle.</p>
+          )}
+          {variableOutflows.map((line) => (
+            <LedgerDespesaRow key={line.id} line={line} paid={isOutflowPaid(line)} onToggle={() => toggleOutflow(line)} />
+          ))}
+        </div>
+
+        {/* TOTALS BAR — heavy double-bordered row */}
+        <div
+          data-testid="ledger-totals-bar"
+          className="px-4 py-4"
+          style={{ borderTop: "6px double black", borderBottom: "6px double black" }}
+        >
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Total Receitas</p>
+              <p className="text-[20px] font-bold tracking-tight mt-1 tabular-nums" style={{ color: "#99CC33" }} data-testid="ledger-total-receitas">
+                €{totalCashInflow.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              </p>
+            </div>
+            <div>
+              <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Total Despesas (Fixas + Variáveis)</p>
+              <p className="text-[20px] font-bold tracking-tight mt-1 tabular-nums" style={{ color: "#BF5700" }} data-testid="ledger-total-despesas">
+                €{totalCashOutflow.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              </p>
+              <p className="text-[8px] text-muted-foreground mt-0.5">
+                €{fixedPaidTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })} fixas · €{variablePaidTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })} variáveis
+              </p>
+            </div>
+            <div>
+              <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Saldo Líquido — Net Liquid Position</p>
+              <p
+                className="text-[24px] font-bold tracking-tight mt-1 tabular-nums"
+                style={{ color: netLiquidPosition >= 0 ? "#99CC33" : "#BF5700" }}
+                data-testid="ledger-net-liquid-position"
+              >
+                {netLiquidPosition < 0 ? "-€" : "€"}{Math.abs(netLiquidPosition).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LedgerSectionLabel({ label, testId }: { label: string; testId: string }) {
+  return (
+    <div className="px-4 py-2 bg-black/[0.06] border-b border-black" data-testid={testId}>
+      <p className="text-[9px] font-bold text-foreground uppercase tracking-[0.14em]">{label}</p>
+    </div>
+  );
+}
+
+function LedgerDespesaRow({ line, paid, onToggle }: { line: OutflowLine; paid: boolean; onToggle: () => void }) {
+  const color = paid ? "#99CC33" : "#BF5700";
+  return (
+    <div
+      className="grid grid-cols-[1.8fr_0.9fr_0.9fr] px-4 py-2 border-b border-border/60 items-center"
+      data-testid={`ledger-despesa-row-${line.id}`}
+    >
+      <div className="min-w-0 pr-2">
+        <p className="text-[10px] font-bold text-foreground truncate">{line.label}</p>
+        <p className="text-[8px] text-muted-foreground truncate">{line.sub}</p>
+      </div>
+      <p className="text-[10px] font-bold text-foreground tabular-nums text-right">
+        €{line.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+      </p>
+      <div className="flex justify-end">
+        <button
+          type="button"
+          data-testid={`ledger-despesa-toggle-${line.id}`}
+          onClick={onToggle}
+          className="px-2.5 py-1 text-[8px] font-bold uppercase tracking-wider border-2 transition-colors rounded-none"
+          style={{ borderColor: color, color, backgroundColor: paid ? "rgba(153,204,51,0.08)" : "rgba(191,87,0,0.08)" }}
+        >
+          [ {paid ? "Paid" : "Pending"} ]
+        </button>
+      </div>
+    </div>
   );
 }
 
