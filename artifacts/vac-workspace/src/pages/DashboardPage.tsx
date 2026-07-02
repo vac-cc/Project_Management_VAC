@@ -1,18 +1,31 @@
 import React, { useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import {
-  Activity, AlertTriangle, ArrowUpRight, CalendarClock, CheckCircle2,
-  CircleDollarSign, Clock, FolderKanban, Landmark, Users2,
+  AlertTriangle, ArrowUpRight, CalendarClock, CheckCircle2,
+  CircleDollarSign, Clock, FolderKanban, Landmark, MessageSquareText,
+  ThumbsUp, Users2, Wallet,
 } from "lucide-react";
 import { PROJECTS, type Project } from "./ProjectsPage";
 import { SEED_TEAM } from "./TeamPage";
 import {
   buildCostCenters,
+  buildLicensingOutflows,
   computeAgencyGlobals,
+  computeCurrentMonthLedger,
+  computeFinancialControl,
+  computeYearlyState,
   DEFAULT_MONTHLY_BURN,
+  generateInvoices,
+  MONTHLY_PROFIT_TARGET,
   RUNWAY_SAFE_THRESHOLD_MONTHS,
+  resolveApproval,
+  resolveOutflowPaid,
   TAX_DEADLINES,
+  YEARLY_PROFIT_TARGET,
+  type CostLine,
+  type OutflowLine,
 } from "./FinancePage";
+import { useOperationsState } from "@/state/OperationsState";
 
 const LEAF = "#99CC33";
 const TERRACOTTA = "#BF5700";
@@ -38,17 +51,17 @@ function daysUntil(date: Date): number {
   return Math.ceil((date.getTime() - TODAY.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-// ── Cross-project master timeline ────────────────────────────
+// ── Operational Burn Checklist (next 5 upcoming deadlines) ────
 
-interface TimelineEntry {
+interface DeadlineEntry {
   key: string;
   date: Date;
   label: string;
   project: Project;
 }
 
-function buildTimeline(): TimelineEntry[] {
-  const entries: TimelineEntry[] = [];
+function buildUpcomingDeadlines(): DeadlineEntry[] {
+  const entries: DeadlineEntry[] = [];
   for (const project of PROJECTS) {
     for (const m of project.milestones) {
       const date = parseMilestoneDate(m.date);
@@ -60,6 +73,47 @@ function buildTimeline(): TimelineEntry[] {
   return entries.sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, 5);
 }
 
+// ── Immediate approvals: pending HR cost-line approvals + pending
+// licensing/permit outflow payments — the two transactional actions the
+// brief calls out (approve a fee, confirm a permit payment). ──
+
+interface PendingApprovalChip {
+  kind: "approval";
+  id: string;
+  line: CostLine;
+  project: Project;
+}
+interface PendingPaymentChip {
+  kind: "payment";
+  id: string;
+  line: OutflowLine;
+}
+type ActionChip = PendingApprovalChip | PendingPaymentChip;
+
+function buildImmediateApprovals(approvals: Record<string, boolean>, outflowOverrides: Record<string, boolean>): ActionChip[] {
+  const chips: ActionChip[] = [];
+  const activeProjects = PROJECTS.filter((p) => p.status === "active");
+
+  for (const project of activeProjects) {
+    const centers = buildCostCenters(project, project.id === "BPC-001");
+    const hr = centers.find((c) => c.id === "hr");
+    if (!hr) continue;
+    for (const line of hr.items) {
+      if (!resolveApproval(line, approvals)) {
+        chips.push({ kind: "approval", id: `approval-${line.id}`, line, project });
+      }
+    }
+  }
+
+  for (const line of buildLicensingOutflows()) {
+    if (!resolveOutflowPaid(line, outflowOverrides)) {
+      chips.push({ kind: "payment", id: `payment-${line.id}`, line });
+    }
+  }
+
+  return chips;
+}
+
 // ── Urgent action items ──────────────────────────────────────
 
 interface ActionItem {
@@ -69,7 +123,7 @@ interface ActionItem {
   severity: "urgent" | "warning";
 }
 
-function buildActionItems(netProfit: number): ActionItem[] {
+function buildActionItems(netProfit: number, approvals: Record<string, boolean>): ActionItem[] {
   const items: ActionItem[] = [];
   const activeProjects = PROJECTS.filter((p) => p.status === "active");
 
@@ -85,7 +139,7 @@ function buildActionItems(netProfit: number): ActionItem[] {
             detail: `${project.client} · ${project.title} — €${line.actual.toLocaleString()} actual vs €${line.approved.toLocaleString()} approved (+${Math.round(overrunPct * 100)}%)`,
             severity: "urgent",
           });
-        } else if (!line.approvedSwitch) {
+        } else if (!resolveApproval(line, approvals)) {
           items.push({
             id: `approval-${line.id}`,
             label: `Cost Approval Pending — ${line.label}`,
@@ -124,16 +178,16 @@ function buildActionItems(netProfit: number): ActionItem[] {
   return items.sort((a, b) => rank[a.severity] - rank[b.severity]).slice(0, 6);
 }
 
-// ── Active crew stream ────────────────────────────────────────
+// ── Active crew blueprint ────────────────────────────────────
 
 function buildCrewStream() {
   const activeProjects = PROJECTS.filter((p) => p.status === "active");
-  const byInitials = new Map<string, { count: number; projects: string[] }>();
+  const byInitials = new Map<string, { count: number; projects: Project[] }>();
   for (const project of activeProjects) {
     for (const initials of project.crew) {
       const entry = byInitials.get(initials) ?? { count: 0, projects: [] };
       entry.count += 1;
-      entry.projects.push(project.title);
+      entry.projects.push(project);
       byInitials.set(initials, entry);
     }
   }
@@ -146,6 +200,9 @@ function buildCrewStream() {
         role: member?.role ?? "Collaborator",
         count: data.count,
         projects: data.projects,
+        // Route the click to whichever active project this collaborator is
+        // busiest on — that's the project Zone C should open pre-filtered to.
+        primaryProject: data.projects[0],
       };
     })
     .sort((a, b) => b.count - a.count);
@@ -208,6 +265,7 @@ function WidgetFrame({
 export default function DashboardPage() {
   const [, setLocation] = useLocation();
   const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const { approvals, setApproval, outflowOverrides, setOutflowPaid } = useOperationsState();
 
   const globals = useMemo(() => computeAgencyGlobals(), []);
   const runwayMonths = DEFAULT_MONTHLY_BURN > 0 ? globals.netProfit / DEFAULT_MONTHLY_BURN : Infinity;
@@ -220,8 +278,28 @@ export default function DashboardPage() {
   const taxDays = nextTax ? daysUntil(nextTax.date) : Infinity;
   const taxUrgent = taxDays <= 14;
 
-  const timeline = useMemo(() => buildTimeline(), []);
-  const actionItems = useMemo(() => buildActionItems(globals.netProfit), [globals.netProfit]);
+  // ── Real-Time Cash Flow & Liquidity Monitor — reads the exact same
+  // invoice/outflow state as Tab 3's Financial Control Area, and the exact
+  // same global approvals/outflowOverrides, so it is always in sync. ──
+  const invoices = useMemo(() => generateInvoices(), []);
+  const financialControl = useMemo(
+    () => computeFinancialControl(invoices, outflowOverrides),
+    [invoices, outflowOverrides]
+  );
+  const monthLedger = useMemo(() => computeCurrentMonthLedger(invoices, DEFAULT_MONTHLY_BURN), [invoices]);
+  const yearly = useMemo(() => computeYearlyState(invoices, DEFAULT_MONTHLY_BURN), [invoices]);
+
+  const budgetOverflow = financialControl.netLiquidPosition < 0;
+  const targetMet = monthLedger.monthTargetMet || yearly.yearTargetAchieved;
+  const monitorFlashClass = budgetOverflow ? "flash-border-terracotta" : targetMet ? "flash-border-leaf" : "";
+  const monitorBorderColor = budgetOverflow ? TERRACOTTA : targetMet ? LEAF : "#1a1a1a";
+
+  const upcomingDeadlines = useMemo(() => buildUpcomingDeadlines(), []);
+  const approvalChips = useMemo(
+    () => buildImmediateApprovals(approvals, outflowOverrides),
+    [approvals, outflowOverrides]
+  );
+  const actionItems = useMemo(() => buildActionItems(globals.netProfit, approvals), [globals.netProfit, approvals]);
   const crewStream = useMemo(() => buildCrewStream(), []);
 
   function toggleChecked(id: string) {
@@ -243,7 +321,99 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ── 1. TOP ROW MACRO KPIs ───────────────────────────── */}
+        {/* ── Real-Time Cash Flow & Liquidity Monitor ─────────── */}
+        <div
+          data-testid="cash-flow-monitor"
+          className={`mb-6 transition-colors ${monitorFlashClass}`}
+          style={{ border: `3px solid ${monitorBorderColor}` }}
+        >
+          <div className="flex items-center justify-between bg-black px-4 py-2.5">
+            <div className="flex items-center gap-2">
+              <Wallet size={13} className="text-white" strokeWidth={2.5} />
+              <p className="text-[10px] font-bold text-white uppercase tracking-[0.16em]">
+                Real-Time Cash Flow &amp; Liquidity Monitor
+              </p>
+            </div>
+            <p className="text-[9px] font-bold text-white/60 uppercase tracking-wider">
+              {financialControl.currentMonthLabel}
+            </p>
+          </div>
+          <div className="grid grid-cols-3 divide-x-2 divide-black">
+            {/* Current Month Balance */}
+            <button
+              onClick={() => setLocation("/finance")}
+              data-testid="monitor-current-balance"
+              className="text-left px-6 py-5 hover:bg-[#f7f7f7] transition-colors"
+            >
+              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">
+                Current Month Balance
+              </p>
+              <p
+                className="text-[26px] font-bold tracking-tight mt-1.5 tabular-nums"
+                style={{ color: budgetOverflow ? TERRACOTTA : LEAF }}
+              >
+                €{financialControl.netLiquidPosition.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                €{financialControl.totalCashInflow.toLocaleString(undefined, { maximumFractionDigits: 0 })} in · €
+                {financialControl.totalCashOutflow.toLocaleString(undefined, { maximumFractionDigits: 0 })} out
+              </p>
+            </button>
+
+            {/* Progress to Monthly Target */}
+            <button
+              onClick={() => setLocation("/finance")}
+              data-testid="monitor-monthly-progress"
+              className="text-left px-6 py-5 hover:bg-[#f7f7f7] transition-colors"
+            >
+              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">
+                Progress to €10K Monthly Target
+              </p>
+              <p
+                className="text-[16px] font-bold tracking-tight mt-1.5 tabular-nums"
+                style={{ color: monthLedger.monthTargetMet ? LEAF : "#1a1a1a" }}
+              >
+                €{monthLedger.monthNetProfit.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                <span className="text-[10px] text-muted-foreground font-normal"> / €{MONTHLY_PROFIT_TARGET.toLocaleString()}</span>
+              </p>
+              <div className="h-1.5 bg-black/10 mt-2.5 w-full">
+                <div
+                  className="h-full transition-all"
+                  style={{
+                    width: `${Math.min(100, Math.max(0, (monthLedger.monthNetProfit / MONTHLY_PROFIT_TARGET) * 100))}%`,
+                    backgroundColor: monthLedger.monthTargetMet ? LEAF : TERRACOTTA,
+                  }}
+                />
+              </div>
+            </button>
+
+            {/* Progress to Yearly Target */}
+            <button
+              onClick={() => setLocation("/finance")}
+              data-testid="monitor-yearly-progress"
+              className="text-left px-6 py-5 hover:bg-[#f7f7f7] transition-colors"
+            >
+              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">
+                Progress to €15K Yearly Target
+              </p>
+              <p
+                className="text-[16px] font-bold tracking-tight mt-1.5 tabular-nums"
+                style={{ color: yearly.yearTargetAchieved ? LEAF : "#1a1a1a" }}
+              >
+                €{yearly.yearNetProfit.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                <span className="text-[10px] text-muted-foreground font-normal"> / €{YEARLY_PROFIT_TARGET.toLocaleString()}</span>
+              </p>
+              <div className="h-1.5 bg-black/10 mt-2.5 w-full">
+                <div
+                  className="h-full transition-all"
+                  style={{ width: `${yearly.yearProgressPct}%`, backgroundColor: yearly.yearTargetAchieved ? LEAF : TERRACOTTA }}
+                />
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* ── TOP ROW MACRO KPIs ───────────────────────────────── */}
         <div className="grid grid-cols-3 border-2 border-black divide-x-2 divide-black mb-6" data-testid="ceo-daily-brief">
           {/* Active Operations Tally */}
           <button
@@ -324,7 +494,131 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        {/* ── 2 & 3. LEFT + RIGHT COLUMNS ─────────────────────── */}
+        {/* ── Daily Action Hub ─────────────────────────────────── */}
+        <div className="mb-6" data-testid="daily-action-hub">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-[#99CC33] font-bold text-sm leading-none">/</span>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Daily Action Hub</p>
+          </div>
+
+          {/* Immediate Approvals Row */}
+          <div
+            data-testid="immediate-approvals-row"
+            className="border-2 border-black bg-background mb-4"
+          >
+            <div className="flex items-center gap-2 bg-black px-4 py-2.5">
+              <ThumbsUp size={13} className="text-white" strokeWidth={2.5} />
+              <p className="text-[10px] font-bold text-white uppercase tracking-[0.14em]">Immediate Approvals</p>
+              <span className="ml-auto text-[9px] font-bold text-white/60 uppercase tracking-wider">
+                {approvalChips.length} pending
+              </span>
+            </div>
+            <div className="p-3 flex flex-wrap gap-2">
+              {approvalChips.length === 0 && (
+                <p className="px-2 py-3 text-[11px] text-muted-foreground">Nothing pending — every fee and permit is settled.</p>
+              )}
+              {approvalChips.map((chip) => {
+                if (chip.kind === "approval") {
+                  return (
+                    <div
+                      key={chip.id}
+                      data-testid={`chip-${chip.id}`}
+                      className="flex items-center gap-2 border border-black px-3 py-2 bg-[#f7f7f7]"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold text-foreground truncate">
+                          {chip.line.label} — €{chip.line.actual.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        </p>
+                        <p className="text-[9px] text-muted-foreground truncate">{chip.project.client} · {chip.project.title}</p>
+                      </div>
+                      <button
+                        onClick={() => setApproval(chip.line.id, true)}
+                        data-testid={`chip-${chip.id}-approve`}
+                        className="shrink-0 px-2 py-1 text-[8px] font-bold uppercase tracking-wider border-2 transition-colors"
+                        style={{ borderColor: LEAF, color: LEAF, backgroundColor: "rgba(153,204,51,0.08)" }}
+                      >
+                        Approve
+                      </button>
+                    </div>
+                  );
+                }
+                return (
+                  <div
+                    key={chip.id}
+                    data-testid={`chip-${chip.id}`}
+                    className="flex items-center gap-2 border border-black px-3 py-2 bg-[#f7f7f7]"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold text-foreground truncate">
+                        {chip.line.label} — €{chip.line.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </p>
+                      <p className="text-[9px] text-muted-foreground truncate">{chip.line.sub}</p>
+                    </div>
+                    <button
+                      onClick={() => setOutflowPaid(chip.line.id, true)}
+                      data-testid={`chip-${chip.id}-confirm`}
+                      className="shrink-0 px-2 py-1 text-[8px] font-bold uppercase tracking-wider border-2 transition-colors"
+                      style={{ borderColor: TERRACOTTA, color: TERRACOTTA, backgroundColor: "rgba(191,87,0,0.08)" }}
+                    >
+                      Confirm Pay
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Operational Burn Checklist */}
+          <WidgetFrame
+            icon={CheckCircle2}
+            title="Operational Burn Checklist"
+            testId="widget-burn-checklist"
+            onNavigate={() => setLocation("/projects")}
+          >
+            <div className="divide-y divide-border">
+              {upcomingDeadlines.map((entry) => {
+                const days = daysUntil(entry.date);
+                const isSoon = days <= 7;
+                const isDone = !!checked[entry.key];
+                return (
+                  <div
+                    key={entry.key}
+                    data-testid={`checklist-entry-${entry.key}`}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-[#f7f7f7] transition-colors"
+                  >
+                    <button
+                      onClick={() => toggleChecked(entry.key)}
+                      data-testid={`checklist-entry-${entry.key}-checkbox`}
+                      className="w-4 h-4 border-2 border-black shrink-0 flex items-center justify-center"
+                      style={{ backgroundColor: isDone ? LEAF : "transparent" }}
+                    >
+                      {isDone && <CheckCircle2 size={11} className="text-black" strokeWidth={3} />}
+                    </button>
+                    <button
+                      onClick={() => setLocation(`/projects?project=${entry.project.id}`)}
+                      className="min-w-0 flex-1 text-left"
+                    >
+                      <p className={`text-[12px] font-bold truncate ${isDone ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                        {entry.label}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                        {entry.project.client} · {entry.project.title}
+                      </p>
+                    </button>
+                    <div className="text-right shrink-0">
+                      <p className="text-[11px] font-bold" style={{ color: isSoon && !isDone ? TERRACOTTA : "#1a1a1a" }}>
+                        {entry.date.toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}
+                      </p>
+                      <p className="text-[9px] text-muted-foreground mt-0.5">{days}d</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </WidgetFrame>
+        </div>
+
+        {/* ── LEFT + RIGHT COLUMNS ─────────────────────────────── */}
         <div className="grid grid-cols-2 gap-6">
           {/* LEFT COLUMN */}
           <div className="flex flex-col gap-6">
@@ -334,6 +628,7 @@ export default function DashboardPage() {
               title="Urgent Action Items"
               testId="widget-urgent-actions"
               onNavigate={() => setLocation("/finance")}
+              className="flex-1"
             >
               <div className="divide-y divide-border">
                 {actionItems.length === 0 && (
@@ -374,47 +669,6 @@ export default function DashboardPage() {
                 })}
               </div>
             </WidgetFrame>
-
-            {/* Cross-Project Master Timeline */}
-            <WidgetFrame
-              icon={Clock}
-              title="Cross-Project Master Timeline"
-              testId="widget-master-timeline"
-              onNavigate={() => setLocation("/projects")}
-              className="flex-1"
-            >
-              <div className="divide-y divide-border">
-                {timeline.map((entry) => {
-                  const days = daysUntil(entry.date);
-                  const isSoon = days <= 7;
-                  return (
-                    <button
-                      key={entry.key}
-                      onClick={() => setLocation("/projects")}
-                      data-testid={`timeline-entry-${entry.key}`}
-                      className="w-full text-left flex items-center gap-3 px-4 py-3 hover:bg-[#f7f7f7] transition-colors"
-                    >
-                      <div
-                        className="w-1.5 h-10 shrink-0"
-                        style={{ backgroundColor: isSoon ? TERRACOTTA : LEAF }}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[12px] font-bold text-foreground truncate">{entry.label}</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
-                          {entry.project.client} · {entry.project.title}
-                        </p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-[11px] font-bold" style={{ color: isSoon ? TERRACOTTA : "#1a1a1a" }}>
-                          {entry.date.toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}
-                        </p>
-                        <p className="text-[9px] text-muted-foreground mt-0.5">{days}d</p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </WidgetFrame>
           </div>
 
           {/* RIGHT COLUMN */}
@@ -443,11 +697,11 @@ export default function DashboardPage() {
               </div>
             </WidgetFrame>
 
-            {/* Active Crew Stream */}
+            {/* Active Crew Blueprint */}
             <WidgetFrame
               icon={Users2}
-              title="Active Crew Stream"
-              testId="widget-crew-stream"
+              title="Active Crew Blueprint"
+              testId="widget-crew-blueprint"
               onNavigate={() => setLocation("/team")}
               className="flex-1"
             >
@@ -455,9 +709,14 @@ export default function DashboardPage() {
                 {crewStream.map((member) => (
                   <button
                     key={member.initials}
-                    onClick={() => setLocation("/team")}
-                    data-testid={`crew-stream-${member.initials}`}
-                    className="w-full text-left flex items-center gap-3 px-4 py-3 hover:bg-[#f7f7f7] transition-colors"
+                    onClick={() =>
+                      member.primaryProject
+                        ? setLocation(`/projects?project=${member.primaryProject.id}`)
+                        : setLocation("/team")
+                    }
+                    data-testid={`crew-blueprint-${member.initials}`}
+                    title={member.primaryProject ? `Open ${member.primaryProject.title} chat` : undefined}
+                    className="w-full text-left flex items-center gap-3 px-4 py-3 hover:bg-[#f7f7f7] transition-colors group"
                   >
                     <div
                       className="w-8 h-8 flex items-center justify-center text-[10px] font-bold shrink-0"
@@ -469,9 +728,12 @@ export default function DashboardPage() {
                       <p className="text-[12px] font-bold text-foreground truncate">{member.name}</p>
                       <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{member.role}</p>
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-[13px] font-bold text-foreground tabular-nums">{member.count}</p>
-                      <p className="text-[9px] text-muted-foreground">active</p>
+                    <div className="text-right shrink-0 flex items-center gap-2">
+                      <div>
+                        <p className="text-[13px] font-bold text-foreground tabular-nums">{member.count}</p>
+                        <p className="text-[9px] text-muted-foreground">active</p>
+                      </div>
+                      <MessageSquareText size={13} className="text-muted-foreground group-hover:text-foreground transition-colors" />
                     </div>
                   </button>
                 ))}

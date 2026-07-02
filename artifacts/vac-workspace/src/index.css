@@ -161,4 +161,19 @@
     background-image: radial-gradient(rgba(0, 0, 0, 0.07) 1px, transparent 1px);
     background-size: 24px 24px;
   }
+
+  @keyframes flash-leaf {
+    0%, 100% { border-color: #99CC33; box-shadow: 0 0 0 0 rgba(153,204,51,0.35); }
+    50% { border-color: #6f9424; box-shadow: 0 0 0 4px rgba(153,204,51,0); }
+  }
+  @keyframes flash-terracotta {
+    0%, 100% { border-color: #BF5700; box-shadow: 0 0 0 0 rgba(191,87,0,0.35); }
+    50% { border-color: #8a3f00; box-shadow: 0 0 0 4px rgba(191,87,0,0); }
+  }
+  .flash-border-leaf {
+    animation: flash-leaf 1.8s ease-in-out infinite;
+  }
+  .flash-border-terracotta {
+    animation: flash-terracotta 1.8s ease-in-out infinite;
+  }
 }

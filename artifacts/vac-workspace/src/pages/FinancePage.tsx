@@ -6,6 +6,7 @@ import {
   Receipt, TrendingUp, Award,
 } from "lucide-react";
 import { PROJECTS, type Project } from "./ProjectsPage";
+import { useOperationsState } from "@/state/OperationsState";
 
 // ── Tabs ─────────────────────────────────────────────────────
 
@@ -179,8 +180,10 @@ function ProjectManagementTab() {
     [selected]
   );
 
-  const [approvals, setApprovals] = useState<Record<string, boolean>>({});
-  const isApproved = (line: CostLine) => approvals[line.id] ?? line.approvedSwitch;
+  // Approvals live in global OperationsState so the Dashboard's Immediate
+  // Approvals Row can action a cost line and have it reflect here instantly.
+  const { approvals, setApproval } = useOperationsState();
+  const isApproved = (line: CostLine) => resolveApproval(line, approvals);
 
   const [previewInvoice, setPreviewInvoice] = useState<{ invoice: InvoiceRef; project: Project; line: string } | null>(null);
 
@@ -338,7 +341,7 @@ function ProjectManagementTab() {
                       {/* Approval switch */}
                       <div className="flex justify-center">
                         <button
-                          onClick={() => setApprovals((prev) => ({ ...prev, [line.id]: !approved }))}
+                          onClick={() => setApproval(line.id, !approved)}
                           data-testid={`switch-approve-${line.id}`}
                           title={approved ? "Cost Approved" : "Pending Approval"}
                           className={`w-9 h-4 border transition-colors relative shrink-0 ${
@@ -806,8 +809,26 @@ function parseMilestoneDate(raw: string): Date {
   return new Date(year, month, day);
 }
 
-const MONTHLY_PROFIT_TARGET = 10000;
-const YEARLY_PROFIT_TARGET = 15000;
+export const MONTHLY_PROFIT_TARGET = 10000;
+export const YEARLY_PROFIT_TARGET = 15000;
+export const DEFAULT_SS_BASELINE = 220;
+
+export function monthKeyOf(d: Date): string {
+  return `${d.getFullYear()}-${d.getMonth()}`;
+}
+
+// Shared resolver so a cost line's approval state agrees everywhere it is
+// rendered (Tab 1's ledger, the Dashboard's Immediate Approvals Row).
+export function resolveApproval(line: CostLine, approvals: Record<string, boolean>): boolean {
+  return approvals[line.id] ?? line.approvedSwitch;
+}
+
+// Shared resolver for outflow paid/pending state — same deterministic default
+// used by the Financial Control Area (Tab 3) and the Dashboard's cash monitor
+// and Immediate Approvals Row, so toggling from either place stays in sync.
+export function resolveOutflowPaid(line: OutflowLine, overrides: Record<string, boolean>): boolean {
+  return overrides[line.id] ?? seedFrom(`${line.id}-outflow-default`) > 0.45;
+}
 
 export const RUNWAY_SAFE_THRESHOLD_MONTHS = 3;
 
@@ -861,7 +882,7 @@ export const TAX_DEADLINES: TaxDeadline[] = [
   { id: "ss", label: "Segurança Social", sub: "Quarterly Declaration Window Opens", date: new Date(2026, 7, 15) },
 ];
 
-interface InvoiceRecord {
+export interface InvoiceRecord {
   id: string;
   client: string;
   projectTitle: string;
@@ -872,9 +893,9 @@ interface InvoiceRecord {
   netShare: number;
 }
 
-interface OutflowLine {
+export interface OutflowLine {
   id: string;
-  category: "saas" | "production" | "tax";
+  category: "saas" | "production" | "licensing" | "tax";
   label: string;
   sub: string;
   amount: number;
@@ -886,6 +907,208 @@ const SAAS_SUBSCRIPTIONS: { id: string; label: string; sub: string; amount: numb
   { id: "saas-m365", label: "Microsoft 365 — Business Standard", sub: "Email, Office Suite & Cloud Storage", amount: 12 },
   { id: "saas-adobe", label: "Adobe Creative Cloud — All Apps", sub: "Design & Video Production Suite", amount: 60 },
 ];
+
+// ── Everyday CEO Ledger: synthetic per-milestone client invoices ──
+// Each project's grossRevenue is split evenly across its milestones and dated
+// to the milestone date, so the monthly/yearly ledgers and the Dashboard stay
+// dynamically wired to whatever budgets exist on Tab 1. cogsShare/netShare
+// carry each invoice's proportional slice of computeProjectFinancials()'s
+// output, so totals always reconcile exactly. Pure & deterministic — safe to
+// call from any page without duplicating state.
+export function generateInvoices(): InvoiceRecord[] {
+  const list: InvoiceRecord[] = [];
+  for (const project of PROJECTS) {
+    const fin = computeProjectFinancials(project);
+    const n = project.milestones.length || 1;
+    const evenShare = Math.round(fin.grossRevenue / n / 10) * 10;
+    let allocated = 0;
+    project.milestones.forEach((m, idx) => {
+      const date = parseMilestoneDate(m.date);
+      const isLast = idx === n - 1;
+      const amount = isLast ? fin.grossRevenue - allocated : evenShare;
+      allocated += amount;
+      const fraction = fin.grossRevenue > 0 ? amount / fin.grossRevenue : 0;
+      let status: InvoiceRecord["status"];
+      if (date.getTime() >= TODAY.getTime()) {
+        status = "Pending";
+      } else {
+        status = seedFrom(`${project.id}-${m.label}-paid`) > 0.82 ? "Overdue" : "Paid";
+      }
+      list.push({
+        id: `INV-${project.id}-${idx + 1}`,
+        client: project.client,
+        projectTitle: project.title,
+        amount,
+        date,
+        status,
+        cogsShare: fin.cogs * fraction,
+        netShare: fin.netProfit * fraction,
+      });
+    });
+  }
+  return list.sort((a, b) => a.date.getTime() - b.date.getTime());
+}
+
+// ── Cost-center-derived outflow line builders — shared by the Financial
+// Control Area (Tab 3) and the Dashboard's cash monitor / approvals row ──
+
+function collectInvoicedCostLines(centerId: "hr" | "lic"): OutflowLine[] {
+  const lines: OutflowLine[] = [];
+  for (const project of PROJECTS.filter((p) => p.status === "active")) {
+    const center = buildCostCenters(project, project.id === "BPC-001").find((c) => c.id === centerId);
+    if (!center) continue;
+    for (const item of center.items) {
+      if (item.invoice) {
+        lines.push({
+          id: `${centerId}-${item.id}`,
+          category: centerId === "hr" ? "production" : "licensing",
+          label: item.label,
+          sub: `${project.client} · ${item.invoice.number}`,
+          amount: item.invoice.amount,
+        });
+      }
+    }
+  }
+  return lines;
+}
+
+export function buildSaasOutflows(): OutflowLine[] {
+  return SAAS_SUBSCRIPTIONS.map((s) => ({ ...s, category: "saas" as const }));
+}
+
+export function buildProductionOutflows(): OutflowLine[] {
+  return collectInvoicedCostLines("hr");
+}
+
+export function buildLicensingOutflows(): OutflowLine[] {
+  return collectInvoicedCostLines("lic");
+}
+
+export function buildTaxOutflows(currentMonthPaidGross: number, ssBaseline: number = DEFAULT_SS_BASELINE): OutflowLine[] {
+  const ivaDeadline = TAX_DEADLINES.find((t) => t.id === "iva");
+  const irsEstimate = Math.round((currentMonthPaidGross * 0.115) / 10) * 10;
+  const ivaEstimate = Math.round((currentMonthPaidGross * 0.23) / 10) * 10;
+  return [
+    {
+      id: "tax-iva",
+      category: "tax",
+      label: "Quarterly IVA — Declaração Trimestral",
+      sub: ivaDeadline ? `Due ${ivaDeadline.date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}` : "Quarterly VAT declaration",
+      amount: ivaEstimate,
+    },
+    {
+      id: "tax-ss",
+      category: "tax",
+      label: "Segurança Social — Monthly Baseline",
+      sub: "Recurring independent-worker contribution",
+      amount: ssBaseline,
+    },
+    {
+      id: "tax-irs",
+      category: "tax",
+      label: "IRS Retention — Retenção na Fonte (11.5%)",
+      sub: "Withheld at source from client invoices",
+      amount: irsEstimate,
+    },
+  ];
+}
+
+export interface FinancialControlState {
+  currentMonthKey: string;
+  currentMonthLabel: string;
+  currentMonthInvoices: InvoiceRecord[];
+  totalCashInflow: number;
+  totalCashOutflow: number;
+  netLiquidPosition: number;
+  saasOutflows: OutflowLine[];
+  productionOutflows: OutflowLine[];
+  licensingOutflows: OutflowLine[];
+  taxOutflows: OutflowLine[];
+  allOutflows: OutflowLine[];
+}
+
+// The single source of truth for "right now" cash position — anchored to
+// TODAY's calendar month (not any page's navigable month picker) so the
+// Dashboard's monitor and Tab 3's Financial Control Area always agree.
+export function computeFinancialControl(
+  invoices: InvoiceRecord[],
+  outflowOverrides: Record<string, boolean>,
+  ssBaseline: number = DEFAULT_SS_BASELINE
+): FinancialControlState {
+  const currentMonthKey = monthKeyOf(TODAY);
+  const currentMonthLabel = TODAY.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  const currentMonthInvoices = invoices
+    .filter((inv) => monthKeyOf(inv.date) === currentMonthKey)
+    .sort((a, b) => b.amount - a.amount);
+  const totalCashInflow = currentMonthInvoices.filter((inv) => inv.status === "Paid").reduce((s, inv) => s + inv.amount, 0);
+
+  const saasOutflows = buildSaasOutflows();
+  const productionOutflows = buildProductionOutflows();
+  const licensingOutflows = buildLicensingOutflows();
+  const taxOutflows = buildTaxOutflows(totalCashInflow, ssBaseline);
+  const allOutflows = [...saasOutflows, ...productionOutflows, ...licensingOutflows, ...taxOutflows];
+
+  const totalCashOutflow = allOutflows
+    .filter((line) => resolveOutflowPaid(line, outflowOverrides))
+    .reduce((s, l) => s + l.amount, 0);
+
+  return {
+    currentMonthKey,
+    currentMonthLabel,
+    currentMonthInvoices,
+    totalCashInflow,
+    totalCashOutflow,
+    netLiquidPosition: totalCashInflow - totalCashOutflow,
+    saasOutflows,
+    productionOutflows,
+    licensingOutflows,
+    taxOutflows,
+    allOutflows,
+  };
+}
+
+export interface CurrentMonthLedgerState {
+  monthLabel: string;
+  monthGrossInflow: number;
+  monthNetProfit: number;
+  monthTargetMet: boolean;
+  monthVariance: number;
+}
+
+// Fixed-to-TODAY profit view (distinct from the Monthly Ledger's navigable
+// history browser) — used by the Dashboard's "Progress to Monthly Target".
+export function computeCurrentMonthLedger(invoices: InvoiceRecord[], monthlyBurn: number): CurrentMonthLedgerState {
+  const key = monthKeyOf(TODAY);
+  const monthInvoices = invoices.filter((inv) => monthKeyOf(inv.date) === key);
+  const monthPaidInvoices = monthInvoices.filter((inv) => inv.status === "Paid");
+  const monthGrossInflow = monthPaidInvoices.reduce((s, inv) => s + inv.amount, 0);
+  const monthNetShare = monthPaidInvoices.reduce((s, inv) => s + inv.netShare, 0);
+  const monthNetProfit = monthNetShare - monthlyBurn;
+  return {
+    monthLabel: TODAY.toLocaleDateString("en-GB", { month: "long", year: "numeric" }),
+    monthGrossInflow,
+    monthNetProfit,
+    monthTargetMet: monthNetProfit >= MONTHLY_PROFIT_TARGET,
+    monthVariance: monthNetProfit - MONTHLY_PROFIT_TARGET,
+  };
+}
+
+export interface YearlyAgencyState {
+  yearNetProfit: number;
+  yearProgressPct: number;
+  yearTargetAchieved: boolean;
+}
+
+export function computeYearlyState(invoices: InvoiceRecord[], monthlyBurn: number): YearlyAgencyState {
+  const currentYear = TODAY.getFullYear();
+  const yearInvoices = invoices.filter((inv) => inv.date.getFullYear() === currentYear);
+  const yearNetProfit = yearInvoices.reduce((s, inv) => s + inv.netShare, 0) - monthlyBurn * 12;
+  return {
+    yearNetProfit,
+    yearProgressPct: Math.min(100, Math.max(0, (yearNetProfit / YEARLY_PROFIT_TARGET) * 100)),
+    yearTargetAchieved: yearNetProfit >= YEARLY_PROFIT_TARGET,
+  };
+}
 
 function InflowRow({ inv }: { inv: InvoiceRecord }) {
   const statusColor = inv.status === "Paid" ? "#99CC33" : inv.status === "Overdue" ? "#BF5700" : "#6b6b6b";
@@ -968,46 +1191,9 @@ function AgencyManagementTab() {
   const paybackComplete = paybackPct >= 100;
 
   // ── Everyday CEO Ledger: synthetic per-milestone client invoices ──
-  // Each project's grossRevenue is split evenly across its milestones and
-  // dated to the milestone date, so the monthly/yearly ledgers below stay
-  // dynamically wired to whatever budgets exist on Tab 1. cogsShare/netShare
-  // carry each invoice's proportional slice of that project's canonical
-  // computeProjectFinancials() output, so totals always reconcile exactly.
-  const invoices = useMemo(() => {
-    const list: InvoiceRecord[] = [];
-    for (const project of PROJECTS) {
-      const fin = computeProjectFinancials(project);
-      const n = project.milestones.length || 1;
-      const evenShare = Math.round(fin.grossRevenue / n / 10) * 10;
-      let allocated = 0;
-      project.milestones.forEach((m, idx) => {
-        const date = parseMilestoneDate(m.date);
-        const isLast = idx === n - 1;
-        const amount = isLast ? fin.grossRevenue - allocated : evenShare;
-        allocated += amount;
-        const fraction = fin.grossRevenue > 0 ? amount / fin.grossRevenue : 0;
-        let status: InvoiceRecord["status"];
-        if (date.getTime() >= TODAY.getTime()) {
-          status = "Pending";
-        } else {
-          status = seedFrom(`${project.id}-${m.label}-paid`) > 0.82 ? "Overdue" : "Paid";
-        }
-        list.push({
-          id: `INV-${project.id}-${idx + 1}`,
-          client: project.client,
-          projectTitle: project.title,
-          amount,
-          date,
-          status,
-          cogsShare: fin.cogs * fraction,
-          netShare: fin.netProfit * fraction,
-        });
-      });
-    }
-    return list.sort((a, b) => a.date.getTime() - b.date.getTime());
-  }, []);
-
-  const monthKeyOf = (d: Date) => `${d.getFullYear()}-${d.getMonth()}`;
+  // generateInvoices() is a shared pure function (see top of file) so the
+  // Dashboard's cash monitor reads the exact same invoice set.
+  const invoices = useMemo(() => generateInvoices(), []);
 
   const months = useMemo(() => {
     const set = new Set(invoices.map((inv) => monthKeyOf(inv.date)));
@@ -1060,75 +1246,28 @@ function AgencyManagementTab() {
   // ── Financial Control Area: current operating month, hands-on cash audit ──
   // Deliberately anchored to TODAY's calendar month (not the Monthly Ledger's
   // navigable monthIndex above) — this is the "right now" daily working tool.
-  const currentMonthKey = monthKeyOf(TODAY);
-  const currentMonthLabel = TODAY.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
-  const currentMonthInvoices = useMemo(
-    () => invoices.filter((inv) => monthKeyOf(inv.date) === currentMonthKey).sort((a, b) => b.amount - a.amount),
-    [invoices, currentMonthKey]
+  // outflowOverrides lives in global OperationsState so toggling a payment
+  // here (or approving/confirming it from the Dashboard) stays in sync.
+  const { outflowOverrides, setOutflowPaid } = useOperationsState();
+  const financialControl = useMemo(
+    () => computeFinancialControl(invoices, outflowOverrides, ssBaseline),
+    [invoices, outflowOverrides, ssBaseline]
   );
-  const currentMonthPaidGross = currentMonthInvoices.filter((inv) => inv.status === "Paid").reduce((s, inv) => s + inv.amount, 0);
-  const totalCashInflow = currentMonthPaidGross;
+  const {
+    currentMonthLabel,
+    currentMonthInvoices,
+    totalCashInflow,
+    totalCashOutflow,
+    netLiquidPosition,
+    saasOutflows,
+    productionOutflows,
+    licensingOutflows,
+    taxOutflows,
+    allOutflows,
+  } = financialControl;
 
-  // Project Production Costs — freelance-network payouts sourced from Tab 1's cost
-  // centers, restricted to line items that actually carry a vendor invoice.
-  const productionOutflows = useMemo(() => {
-    const lines: OutflowLine[] = [];
-    for (const project of PROJECTS.filter((p) => p.status === "active")) {
-      const hr = buildCostCenters(project, project.id === "BPC-001").find((c) => c.id === "hr");
-      if (!hr) continue;
-      for (const item of hr.items) {
-        if (item.invoice) {
-          lines.push({
-            id: `prod-${item.id}`,
-            category: "production",
-            label: item.label,
-            sub: `${project.client} · ${item.invoice.number}`,
-            amount: item.invoice.amount,
-          });
-        }
-      }
-    }
-    return lines;
-  }, []);
-
-  // Tax Obligations — derived from Tab 2's fiscal deadlines and burn-tracker baseline.
-  const ivaDeadline = TAX_DEADLINES.find((t) => t.id === "iva");
-  const irsEstimate = Math.round((currentMonthPaidGross * 0.115) / 10) * 10;
-  const ivaEstimate = Math.round((currentMonthPaidGross * 0.23) / 10) * 10;
-  const taxOutflows: OutflowLine[] = [
-    {
-      id: "tax-iva",
-      category: "tax",
-      label: "Quarterly IVA — Declaração Trimestral",
-      sub: ivaDeadline ? `Due ${ivaDeadline.date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}` : "Quarterly VAT declaration",
-      amount: ivaEstimate,
-    },
-    {
-      id: "tax-ss",
-      category: "tax",
-      label: "Segurança Social — Monthly Baseline",
-      sub: "Recurring independent-worker contribution",
-      amount: ssBaseline,
-    },
-    {
-      id: "tax-irs",
-      category: "tax",
-      label: "IRS Retention — Retenção na Fonte (11.5%)",
-      sub: "Withheld at source from client invoices",
-      amount: irsEstimate,
-    },
-  ];
-
-  const saasOutflows: OutflowLine[] = SAAS_SUBSCRIPTIONS.map((s) => ({ ...s, category: "saas" as const }));
-  const allOutflows = useMemo(() => [...saasOutflows, ...productionOutflows, ...taxOutflows], [productionOutflows, taxOutflows]);
-
-  const [outflowOverrides, setOutflowOverrides] = useState<Record<string, boolean>>({});
-  const isOutflowPaid = (line: OutflowLine) => outflowOverrides[line.id] ?? seedFrom(`${line.id}-outflow-default`) > 0.45;
-  const toggleOutflow = (line: OutflowLine) =>
-    setOutflowOverrides((prev) => ({ ...prev, [line.id]: !isOutflowPaid(line) }));
-
-  const totalCashOutflow = allOutflows.filter(isOutflowPaid).reduce((s, l) => s + l.amount, 0);
-  const netLiquidPosition = totalCashInflow - totalCashOutflow;
+  const isOutflowPaid = (line: OutflowLine) => resolveOutflowPaid(line, outflowOverrides);
+  const toggleOutflow = (line: OutflowLine) => setOutflowPaid(line.id, !isOutflowPaid(line));
 
   return (
     <motion.div
@@ -1386,6 +1525,14 @@ function AgencyManagementTab() {
                   <p className="px-4 py-2 text-[9px] text-muted-foreground">No invoiced production payouts this cycle.</p>
                 )}
                 {productionOutflows.map((line) => (
+                  <OutflowRow key={line.id} line={line} paid={isOutflowPaid(line)} onToggle={() => toggleOutflow(line)} />
+                ))}
+
+                <p className="px-4 pt-3 pb-1 text-[8px] font-bold text-muted-foreground uppercase tracking-wider">Licensing &amp; Permits</p>
+                {licensingOutflows.length === 0 && (
+                  <p className="px-4 py-2 text-[9px] text-muted-foreground">No invoiced permits or licenses this cycle.</p>
+                )}
+                {licensingOutflows.map((line) => (
                   <OutflowRow key={line.id} line={line} paid={isOutflowPaid(line)} onToggle={() => toggleOutflow(line)} />
                 ))}
 

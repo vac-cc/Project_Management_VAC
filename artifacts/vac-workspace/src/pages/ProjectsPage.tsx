@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useSearch } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, Calendar, DollarSign, Tag, ArrowLeft } from "lucide-react";
 import ZoneA from "../components/ZoneA";
@@ -534,6 +535,18 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 export default function ProjectsPage() {
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Project | null>(null);
+  const search = useSearch();
+
+  // Deep-link support — e.g. clicking a collaborator on the Dashboard's
+  // Active Crew Blueprint navigates to /projects?project=<id>, which opens
+  // that project's drilldown (and its scoped Zone C chat) directly.
+  useEffect(() => {
+    const params = new URLSearchParams(search);
+    const projectId = params.get("project");
+    if (!projectId) return;
+    const match = PROJECTS.find((p) => p.id === projectId);
+    if (match) setSelected(match);
+  }, [search]);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
