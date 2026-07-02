@@ -1,0 +1,20 @@
+Act as an Elite Frontend Architect and Senior UI Engineer. Let's execute a highly precise visual and architectural refinement on our "Team" (Human Resource) page. We are accentuating our bold, brutalist-minimalist wireframe: sharp 90-degree corners (rounded-none), high-contrast text, and zero-radius framing.
+
+Please implement the following layout and styling updates:
+
+### 1. CLEANUP & STRIPPED ACTIONS (Button & Filter Refinement)
+- **Collaborator Button Refinement:** Locate the "+ Add Collaborator" button. Completely remove the small literal "+" plus character/icon from it. The button text must now read strictly and cleanly: "Add Collaborator".
+- **Availability Deprecation:** Completely strip out the "Availability / Project Load" option from the platform's codebase in this view. This means removing the availability status badge from every single collaborator profile card, and completely deleting the availability criteria option from the top search/results filter bar.
+
+### 2. HEADER TYPOGRAPHY OVERHAUL & SIMPLIFICATION
+- **Clean Main Page Header:** At the absolute top of the page, completely delete the bold title "Agency Team". Keep only the raw, elegant string: "/Human Resource".
+- **Aggressive Title Scale:** Make the title header of every individual professional's section significantly LARGER to establish a commanding, readable, and editorial text hierarchy. 
+
+### 3. CHROMATIC EXPERTISE CODING (Solid Colors to Pattern Fallback)
+To make the directory instantly scannable, we are introducing a structural color-coded background rule for the header row of each collaborator's section based on their core expertise:
+- **Rule 1 - Solid Brand Colors First:** Assign solid backgrounds of our core official brand colors to the dominant job roles (e.g., Design gets solid Leaf Green `#99CC33`; Programming/Strategy gets solid Terracotta `#BF5700`).
+- **Rule 2 - Neutrals Next:** For subsequent unique roles, utilize high-contrast solid Pure Black, Dark Gray, or Light Gray structural backgrounds.
+- **Rule 3 - Pattern Fallback:** Only when you have completely run out of these distinct solid background options, implement our fine geometric brand patterns (e.g., striped linear gradients or architectural dot grids using brand colors) as background treatments for the remaining headers.
+- **Contrast Lock:** All text resting on top of these vibrant solid or pattern backgrounds must dynamically adjust for flawless readability (e.g., white bold text over black/terracotta backgrounds, black bold text over green/light gray backgrounds).
+
+Ensure the grid borders align perfectly without any pixel overlap. Update the live preview for verification.
