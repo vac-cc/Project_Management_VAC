@@ -1,0 +1,25 @@
+Act as an Elite Full-Stack Financial Engineer. Let's upgrade the Excel-style table engine inside Tab 1 (Project Management) of our "FinancePage" to embed a deep, C-suite level scope of project financial management.
+
+We need to implement a dynamic, multi-layered summary ledger block (Total Project Financial Scope) at the top or bottom of our existing spreadsheet grid. Maintain our strict sharp-cornered (rounded-none), brutalist white aesthetic using the Vāc Brand palette (Leaf Green #99CC33, Terracotta #BF5700, and Pure Black).
+
+Please program the spreadsheet container to calculate and display the following cascading financial parameters:
+
+### 1. OVERALL PROJECT TOTALS & CORE METRICS CONTAINER
+Build a dedicated summary header/footer inside the project spreadsheet that automatically aggregates the line items into the following high-level KPIs:
+- **Total Gross Revenue (Valor Bruto Contratado):** The absolute total amount invoiced to the client as per the Master Services Agreement (MSA).
+- **Total Operational Costs (COGS):** Total sum of all itemized section blocks combined (Human Resources, Production scenography, Post-Production, and Municipal/EMEL Licensing logistics).
+
+### 2. DEEP SCOPE MANAGEMENT CALCULATOR (Gross vs. Net Margins)
+Program the component logic to mathematically compute and display:
+- **Gross Profit (Lucro Bruto):** Calculated instantly as `Total Gross Revenue - Total Operational Costs`.
+- **Agency Gross Margin (%):** Display the percentage efficiency of the project (Gross Profit / Total Gross Revenue * 100).
+- **Net Profit (Lucro Líquido Real):** Deduct mandatory corporate overhead parameters, including local independent worker tax retentions or corporate operational allocations, from the Gross Profit to reveal the TRUE net liquid cash retained by the agency.
+- **Agency Net Margin (%):** Display the final net profit margin percentage.
+
+### 3. EXECUTIVE VISUAL DESIGN
+- Structure this summary block using a heavy Pure Black top/bottom border (`border-t-2 border-b-2 border-black`) to mimic a traditional corporate audit ledger.
+- Use **Leaf Green (#99CC33)** highlights for healthy profit metrics and positive margin targets.
+- If the calculated Net Margin drops below an optimized agency threshold (e.g., 20%), dynamically trigger a warning style using **Terracotta (#BF5700)** to alert management immediately.
+
+Ensure all React state hooks update these equations in real-time as line-item costs change. Update the workspace and refresh the live preview.
+

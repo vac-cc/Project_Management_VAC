@@ -349,6 +349,9 @@ function ProjectManagementTab() {
               </div>
             );
           })}
+
+          {/* Total Project Financial Scope — executive audit-style ledger footer */}
+          <FinancialScopeSummary masterBudget={masterBudget} totalOperationalCosts={totalActual} />
         </div>
       </div>
 
@@ -413,6 +416,103 @@ function ProjectManagementTab() {
         )}
       </AnimatePresence>
     </motion.div>
+  );
+}
+
+/* ─── Total Project Financial Scope — executive audit ledger ─── */
+
+// Combined independent-worker tax retention + corporate overhead allocation
+// deducted from Gross Profit to reach true agency Net Profit.
+const OVERHEAD_ALLOCATION_RATE = 0.222;
+const NET_MARGIN_HEALTHY_THRESHOLD = 20; // %
+
+function FinancialScopeSummary({ masterBudget, totalOperationalCosts }: { masterBudget: number; totalOperationalCosts: number }) {
+  const grossProfit = masterBudget - totalOperationalCosts;
+  const grossMarginPct = masterBudget > 0 ? (grossProfit / masterBudget) * 100 : 0;
+  const overheadAllocation = grossProfit * OVERHEAD_ALLOCATION_RATE;
+  const netProfit = grossProfit - overheadAllocation;
+  const netMarginPct = masterBudget > 0 ? (netProfit / masterBudget) * 100 : 0;
+  const isHealthy = netMarginPct >= NET_MARGIN_HEALTHY_THRESHOLD;
+
+  return (
+    <div data-testid="financial-scope-summary" className="border-t-2 border-b-2 border-black mt-2">
+      <div className="px-4 py-2.5 bg-black flex items-center justify-between">
+        <p className="text-[9px] font-bold text-white uppercase tracking-[0.16em]">Total Project Financial Scope</p>
+        <p className="text-[8px] font-bold text-white/60 uppercase tracking-wider">Executive Summary</p>
+      </div>
+
+      <div className="grid grid-cols-4 divide-x divide-border">
+        <ScopeCell
+          label="Total Gross Revenue"
+          sub="Valor Bruto Contratado (MSA)"
+          value={masterBudget}
+        />
+        <ScopeCell
+          label="Total Operational Costs"
+          sub="COGS — all cost centers"
+          value={totalOperationalCosts}
+        />
+        <ScopeCell
+          label="Gross Profit"
+          sub={`Agency Gross Margin ${grossMarginPct.toFixed(1)}%`}
+          value={grossProfit}
+          tone={grossMarginPct >= NET_MARGIN_HEALTHY_THRESHOLD ? "green" : "terracotta"}
+        />
+        <ScopeCell
+          label="Net Profit"
+          sub={`Agency Net Margin ${netMarginPct.toFixed(1)}%`}
+          value={netProfit}
+          tone={isHealthy ? "green" : "terracotta"}
+          emphasize
+          testId="scope-net-profit"
+        />
+      </div>
+
+      {!isHealthy && (
+        <div data-testid="scope-net-margin-alert" className="px-4 py-2.5 bg-primary/10 border-t border-primary flex items-center gap-2.5">
+          <AlertTriangle size={13} className="text-primary shrink-0" strokeWidth={2.5} />
+          <p className="text-[10px] font-bold uppercase tracking-wide text-primary">
+            Net margin ({netMarginPct.toFixed(1)}%) is below the {NET_MARGIN_HEALTHY_THRESHOLD}% agency threshold — review overhead allocation or renegotiate scope
+          </p>
+        </div>
+      )}
+
+      <div className="px-4 py-2 border-t border-border bg-muted">
+        <p className="text-[8px] text-muted-foreground leading-relaxed">
+          Net Profit deducts a {(OVERHEAD_ALLOCATION_RATE * 100).toFixed(1)}% allocation for independent-worker tax retention &amp; corporate overhead from Gross Profit to reveal true liquid cash retained by the agency.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ScopeCell({
+  label,
+  sub,
+  value,
+  tone,
+  emphasize,
+  testId,
+}: {
+  label: string;
+  sub: string;
+  value: number;
+  tone?: "green" | "terracotta";
+  emphasize?: boolean;
+  testId?: string;
+}) {
+  const color = tone === "green" ? "#99CC33" : tone === "terracotta" ? "#BF5700" : "#1a1a1a";
+  return (
+    <div className={`px-4 py-4 ${emphasize ? "bg-black/[0.03]" : ""}`} data-testid={testId}>
+      <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.14em]">{label}</p>
+      <p
+        className={`font-bold tracking-tight mt-1.5 tabular-nums ${emphasize ? "text-[22px]" : "text-[18px]"}`}
+        style={{ color }}
+      >
+        {value < 0 ? "-€" : "€"}{Math.abs(value).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+      </p>
+      <p className="text-[9px] font-bold uppercase tracking-wide mt-1" style={{ color: tone ? color : "#6b6b6b" }}>{sub}</p>
+    </div>
   );
 }
 
