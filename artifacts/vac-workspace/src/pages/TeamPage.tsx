@@ -185,16 +185,24 @@ function TeamCard({ member, index }: { member: TeamMember; index: number }) {
           <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">{member.expertise}</p>
         </div>
 
-        {/* Contact ledger */}
-        <div className="flex flex-col gap-1 border border-black/8 px-3 py-2.5 bg-muted/40">
-          <div className="flex items-center gap-2">
-            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest w-5 shrink-0">EM</span>
-            <span className="text-[10px] font-bold text-foreground">{member.email}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest w-5 shrink-0">PH</span>
-            <span className="text-[10px] font-bold text-foreground">{member.phone}</span>
-          </div>
+        {/* Unified inline contact + asset bar */}
+        <div className="flex flex-row items-center gap-0 border border-black/8 divide-x divide-black/8 overflow-hidden">
+          <span className="flex items-baseline gap-1 px-2.5 py-2 shrink-0 min-w-0">
+            <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest shrink-0">EM</span>
+            <span className="text-[9px] font-bold text-foreground truncate">{member.email}</span>
+          </span>
+          <span className="flex items-baseline gap-1 px-2.5 py-2 shrink-0">
+            <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest shrink-0">PH</span>
+            <span className="text-[9px] font-bold text-foreground whitespace-nowrap">{member.phone}</span>
+          </span>
+          <a href={member.cv} onClick={(e) => e.preventDefault()}
+            className="flex items-center gap-1 px-2.5 py-2 text-[9px] font-bold uppercase tracking-wider text-foreground hover:text-[#99CC33] transition-colors whitespace-nowrap shrink-0">
+            <FileText size={9} />CV
+          </a>
+          <a href={member.portfolio} onClick={(e) => e.preventDefault()}
+            className="flex items-center gap-1 px-2.5 py-2 text-[9px] font-bold uppercase tracking-wider text-foreground hover:text-[#99CC33] transition-colors whitespace-nowrap shrink-0">
+            <ExternalLink size={9} />Portfolio
+          </a>
         </div>
 
         {/* Skills */}
@@ -222,18 +230,6 @@ function TeamCard({ member, index }: { member: TeamMember; index: number }) {
           </div>
         </div>
 
-        {/* CV / Portfolio links */}
-        <div className="flex items-center gap-3 pt-2 border-t border-border">
-          <a href={member.cv} onClick={(e) => e.preventDefault()}
-            className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground hover:text-[#99CC33] transition-colors">
-            <FileText size={10} />View CV
-          </a>
-          <span className="text-black/20">·</span>
-          <a href={member.portfolio} onClick={(e) => e.preventDefault()}
-            className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground hover:text-[#99CC33] transition-colors">
-            <ExternalLink size={10} />Portfolio
-          </a>
-        </div>
       </div>
     </motion.div>
   );
