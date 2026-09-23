@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import {
   AlertTriangle, ArrowUpRight, CalendarClock, CheckCircle2,
   CircleDollarSign, FolderKanban, MessageSquareText,
-  Users2, Wallet,
+  ThumbsUp, Users2, Wallet,
 } from "lucide-react";
 import { PROJECTS, type Project } from "./ProjectsPage";
 import { SEED_TEAM } from "./TeamPage";
@@ -138,41 +138,12 @@ function WidgetFrame({
 export default function DashboardPage() {
   const [, setLocation] = useLocation();
   const [checked, setChecked] = useState<Record<string, boolean>>({});
-  const { approvals, setApproval, outflowOverrides, setOutflowPaid } = useOperationsState();
-
-  const globals = useMemo(() => computeAgencyGlobals(), []);
-  const runwayMonths = DEFAULT_MONTHLY_BURN > 0 ? globals.netProfit / DEFAULT_MONTHLY_BURN : Infinity;
-  const runwayHealthy = runwayMonths >= RUNWAY_SAFE_THRESHOLD_MONTHS;
-
-  const nextTax = useMemo(
-    () => [...TAX_DEADLINES].sort((a, b) => a.date.getTime() - b.date.getTime())[0],
-    []
-  );
-  const taxDays = nextTax ? daysUntil(nextTax.date) : Infinity;
-  const taxUrgent = taxDays <= 14;
-
-  // ── Real-Time Cash Flow & Liquidity Monitor — reads the exact same
-  // invoice/outflow state as Tab 3's Financial Control Area, and the exact
-  // same global approvals/outflowOverrides, so it is always in sync. ──
-  const invoices = useMemo(() => generateInvoices(), []);
-  const financialControl = useMemo(
-    () => computeFinancialControl(invoices, outflowOverrides),
-    [invoices, outflowOverrides]
-  );
-  const monthLedger = useMemo(() => computeCurrentMonthLedger(invoices, DEFAULT_MONTHLY_BURN), [invoices]);
-  const yearly = useMemo(() => computeYearlyState(invoices, DEFAULT_MONTHLY_BURN), [invoices]);
-
-  const budgetOverflow = financialControl.netLiquidPosition < 0;
-  const targetMet = monthLedger.monthTargetMet || yearly.yearTargetAchieved;
-  const monitorFlashClass = budgetOverflow ? "flash-border-terracotta" : targetMet ? "flash-border-leaf" : "";
-  const monitorBorderColor = budgetOverflow ? TERRACOTTA : targetMet ? LEAF : "#1a1a1a";
-
+  const activeCount = PROJECTS.filter((p) => p.status === "active").length;
+  const notStartedCount = PROJECTS.filter((p) => p.status === "not-started").length;
+  const completedCount = PROJECTS.filter((p) => p.status === "past").length;
+  const totalProjects = PROJECTS.length;
+  const totalClients = CLIENTS.length;
   const upcomingDeadlines = useMemo(() => buildUpcomingDeadlines(), []);
-  const approvalChips = useMemo(
-    () => buildImmediateApprovals(approvals, outflowOverrides),
-    [approvals, outflowOverrides]
-  );
-  const actionItems = useMemo(() => buildActionItems(globals.netProfit, approvals), [globals.netProfit, approvals]);
   const crewStream = useMemo(() => buildCrewStream(), []);
 
   function toggleChecked(id: string) {
@@ -197,8 +168,8 @@ export default function DashboardPage() {
         {/* ── Real-Time Cash Flow & Liquidity Monitor ─────────── */}
         <div
           data-testid="cash-flow-monitor"
-          className={`mb-6 transition-colors ${monitorFlashClass}`}
-          style={{ border: `3px solid ${monitorBorderColor}` }}
+          className="mb-6 transition-colors"
+          style={{ border: "3px solid #1a1a1a" }}
         >
           <div className="flex items-center justify-between bg-black px-4 py-2.5">
             <div className="flex items-center gap-2">
@@ -208,7 +179,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <p className="text-[9px] font-bold text-white/60 uppercase tracking-wider">
-              {financialControl.currentMonthLabel}
+              No cash flow data
             </p>
           </div>
           <div className="grid grid-cols-3 divide-x-2 divide-black">
@@ -223,13 +194,12 @@ export default function DashboardPage() {
               </p>
               <p
                 className="text-[26px] font-bold tracking-tight mt-1.5 tabular-nums"
-                style={{ color: budgetOverflow ? TERRACOTTA : LEAF }}
+                style={{ color: "#1a1a1a" }}
               >
-                €{financialControl.netLiquidPosition.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                €0
               </p>
               <p className="text-[10px] text-muted-foreground mt-1">
-                €{financialControl.totalCashInflow.toLocaleString(undefined, { maximumFractionDigits: 0 })} in · €
-                {financialControl.totalCashOutflow.toLocaleString(undefined, { maximumFractionDigits: 0 })} out
+                €0 in · €0 out
               </p>
             </button>
 
@@ -240,21 +210,21 @@ export default function DashboardPage() {
               className="text-left px-6 py-5 hover:bg-[#f7f7f7] transition-colors"
             >
               <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">
-                Progress to €10K Monthly Target
+                Monthly Cash Flow Recorded
               </p>
               <p
                 className="text-[16px] font-bold tracking-tight mt-1.5 tabular-nums"
-                style={{ color: monthLedger.monthTargetMet ? LEAF : "#1a1a1a" }}
+                style={{ color: "#1a1a1a" }}
               >
-                €{monthLedger.monthNetProfit.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                <span className="text-[10px] text-muted-foreground font-normal"> / €{MONTHLY_PROFIT_TARGET.toLocaleString()}</span>
+                €0
+                <span className="text-[10px] text-muted-foreground font-normal"> / €0</span>
               </p>
               <div className="h-1.5 bg-black/10 mt-2.5 w-full">
                 <div
                   className="h-full transition-all"
                   style={{
-                    width: `${Math.min(100, Math.max(0, (monthLedger.monthNetProfit / MONTHLY_PROFIT_TARGET) * 100))}%`,
-                    backgroundColor: monthLedger.monthTargetMet ? LEAF : TERRACOTTA,
+                    width: "0%",
+                    backgroundColor: "#1a1a1a",
                   }}
                 />
               </div>
@@ -267,19 +237,19 @@ export default function DashboardPage() {
               className="text-left px-6 py-5 hover:bg-[#f7f7f7] transition-colors"
             >
               <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">
-                Progress to €15K Yearly Target
+                Yearly Cash Flow Recorded
               </p>
               <p
                 className="text-[16px] font-bold tracking-tight mt-1.5 tabular-nums"
-                style={{ color: yearly.yearTargetAchieved ? LEAF : "#1a1a1a" }}
+                style={{ color: "#1a1a1a" }}
               >
-                €{yearly.yearNetProfit.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                <span className="text-[10px] text-muted-foreground font-normal"> / €{YEARLY_PROFIT_TARGET.toLocaleString()}</span>
+                €0
+                <span className="text-[10px] text-muted-foreground font-normal"> / €0</span>
               </p>
               <div className="h-1.5 bg-black/10 mt-2.5 w-full">
                 <div
                   className="h-full transition-all"
-                  style={{ width: `${yearly.yearProgressPct}%`, backgroundColor: yearly.yearTargetAchieved ? LEAF : TERRACOTTA }}
+                  style={{ width: "0%", backgroundColor: "#1a1a1a" }}
                 />
               </div>
             </button>
@@ -304,66 +274,55 @@ export default function DashboardPage() {
               <ArrowUpRight size={13} className="text-muted-foreground group-hover:text-foreground transition-colors" />
             </div>
             <p className="text-[34px] font-bold tracking-tight mt-2 tabular-nums" data-testid="kpi-active-operations-value">
-              {globals.activeCount}
+              {totalProjects}
             </p>
             <p className="text-[10px] text-muted-foreground mt-1">
-              live engagements · {globals.pastCount} completed to date
+              {activeCount} active · {notStartedCount} not yet started · {completedCount} completed
             </p>
           </button>
 
-          {/* Global Liquidity Runway */}
+          {/* Total Clients */}
           <button
-            onClick={() => setLocation("/finance")}
-            data-testid="kpi-liquidity-runway"
+            onClick={() => setLocation("/clients")}
+            data-testid="kpi-total-clients"
             className="text-left px-6 py-5 hover:bg-[#f7f7f7] transition-colors group"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Landmark size={14} className="text-foreground" strokeWidth={2.5} />
+                <Users2 size={14} className="text-foreground" strokeWidth={2.5} />
                 <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">
-                  Global Liquidity Runway
+                  Total Clients
                 </p>
               </div>
               <ArrowUpRight size={13} className="text-muted-foreground group-hover:text-foreground transition-colors" />
             </div>
-            <p
-              className="text-[34px] font-bold tracking-tight mt-2 tabular-nums"
-              style={{ color: runwayHealthy ? LEAF : TERRACOTTA }}
-              data-testid="kpi-liquidity-runway-value"
-            >
-              {Number.isFinite(runwayMonths) ? runwayMonths.toFixed(1) : "∞"} mo
+            <p className="text-[34px] font-bold tracking-tight mt-2 tabular-nums" data-testid="kpi-total-clients-value">
+              {totalClients}
             </p>
             <p className="text-[10px] text-muted-foreground mt-1">
-              Net Liquid Cash €{globals.netProfit.toLocaleString(undefined, { maximumFractionDigits: 0 })} ÷ €{DEFAULT_MONTHLY_BURN.toLocaleString()}/mo burn
+              real client records
             </p>
           </button>
 
-          {/* Next Tax Milestone Badge */}
+          {/* Total Profit */}
           <button
-            onClick={() => setLocation("/finance")}
-            data-testid="kpi-tax-milestone"
+            onClick={() => setLocation("/clients")}
+            data-testid="kpi-total-profit"
             className="text-left px-6 py-5 hover:bg-[#f7f7f7] transition-colors group"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <CalendarClock size={14} className="text-foreground" strokeWidth={2.5} />
+                <CircleDollarSign size={14} className="text-foreground" strokeWidth={2.5} />
                 <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">
-                  Next Tax Milestone
+                  Total Profit
                 </p>
               </div>
               <ArrowUpRight size={13} className="text-muted-foreground group-hover:text-foreground transition-colors" />
             </div>
-            <div className="mt-2 flex items-center gap-2">
-              <span
-                className="inline-block px-2 py-1 text-[11px] font-bold text-white uppercase tracking-wide"
-                style={{ backgroundColor: taxUrgent ? TERRACOTTA : "#1a1a1a" }}
-                data-testid="kpi-tax-milestone-badge"
-              >
-                {taxDays} day{taxDays === 1 ? "" : "s"}
-              </span>
-              <p className="text-[13px] font-bold text-foreground">{nextTax?.label}</p>
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-1.5">{nextTax?.sub}</p>
+            <p className="text-[34px] font-bold tracking-tight mt-2 tabular-nums" data-testid="kpi-total-profit-value">
+              €{TOTAL_PROFIT.toLocaleString()}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-1">recorded profit</p>
           </button>
         </div>
 
