@@ -6,6 +6,7 @@ import {
   Video, ExternalLink
 } from "lucide-react";
 import { type PatternEntry, ASSIGNEE_PALETTE } from "../data/assigneePalette";
+import type { Project } from "../pages/ProjectsPage";
 
 type Tab = "finance" | "timeline" | "canvas";
 
@@ -24,12 +25,12 @@ interface PendingCost {
 }
 
 interface ZoneBProps {
+  project: Project;
   onCostSubmitted: () => void;
 }
 
-export default function ZoneB({ onCostSubmitted }: ZoneBProps) {
+export default function ZoneB({ project, onCostSubmitted }: ZoneBProps) {
   const [activeTab, setActiveTab] = useState<Tab>("finance");
-  const [overrun, setOverrun] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [pendingCosts, setPendingCosts] = useState<PendingCost[]>([]);
 
@@ -81,8 +82,7 @@ export default function ZoneB({ onCostSubmitted }: ZoneBProps) {
           {activeTab === "finance" && (
             <FinancePanel
               key="finance"
-              overrun={overrun}
-              setOverrun={setOverrun}
+              project={project}
               drawerOpen={drawerOpen}
               setDrawerOpen={setDrawerOpen}
               pendingCosts={pendingCosts}
@@ -99,24 +99,33 @@ export default function ZoneB({ onCostSubmitted }: ZoneBProps) {
 
 /* ─── Finance Panel ─────────────────────────────────────── */
 interface FinancePanelProps {
-  overrun: boolean;
-  setOverrun: (v: boolean) => void;
+  project: Project;
   drawerOpen: boolean;
   setDrawerOpen: (v: boolean) => void;
   pendingCosts: PendingCost[];
   onCostSubmitted: (cost: PendingCost) => void;
 }
 
-function FinancePanel({ overrun, setOverrun, drawerOpen, setDrawerOpen, pendingCosts, onCostSubmitted }: FinancePanelProps) {
+function parseCurrency(value: string | number): number {
+  const normalized = String(value).replace(/[€,\s]/g, "");
+  const parsed = Number.parseFloat(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function FinancePanel({ project, drawerOpen, setDrawerOpen, pendingCosts, onCostSubmitted }: FinancePanelProps) {
   const nextId = useRef(Date.now());
 
-  const fixedExpenses = [
-    { label: "Production Crew",     allocated: 18000, spent: 14200, pct: 79 },
-    { label: "Venue & Logistics",   allocated: 12000, spent: 10800, pct: 90 },
-    { label: "Creative & Design",   allocated: 8000,  spent: 4900,  pct: 61 },
-    { label: "Contingency Reserve", allocated: 7000,  spent: 1600,  pct: 23 },
-  ];
-
+  const parsedBudget = parseCurrency(project.budget);
+  const freelancerCosts = project.freelancerCosts ?? [];
+  const isProBono = parsedBudget === 0;
+  const totalCosts = isProBono
+    ? 0
+    : freelancerCosts.reduce((sum, cost) => sum + parseCurrency(cost.amount), 0);
+  const netProfit = parsedBudget - totalCosts;
+  const overrun = !isProBono && totalCosts > parsedBudget;
+  const budgetUtilization = parsedBudget > 0 ? (totalCosts / parsedBudget) * 100 : 0;
+  const profitMargin = parsedBudget > 0 ? (netProfit / parsedBudget) * 100 : 0;
+  const formatEuro = (value: number) => `€${value.toLocaleString()}`;
   return (
     <div className="absolute inset-0 flex overflow-hidden">
 
@@ -129,17 +138,11 @@ function FinancePanel({ overrun, setOverrun, drawerOpen, setDrawerOpen, pendingC
             <span className="text-accent font-bold text-sm leading-none">/</span>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Project Financial Report</p>
           </div>
-          <button
-            onClick={() => setOverrun(!overrun)}
-            data-testid="button-toggle-overrun"
-            className={`px-4 py-2 text-[10px] font-bold uppercase tracking-wider border transition-all duration-150 ${
-              overrun
-                ? "bg-primary text-white border-primary"
-                : "bg-white text-foreground border-border hover:border-foreground"
-            }`}
-          >
-            {overrun ? "Reset State" : "Simulate Overrun"}
-          </button>
+          {isProBono && (
+            <span className="px-3 py-1.5 border border-accent text-accent text-[10px] font-bold uppercase tracking-wider">
+              Pro Bono Project
+            </span>
+          )}
         </div>
 
         {/* Budget Matrix */}
@@ -151,38 +154,58 @@ function FinancePanel({ overrun, setOverrun, drawerOpen, setDrawerOpen, pendingC
             <ColHeader border>Profit Margin Tracker</ColHeader>
           </div>
 
-          <AnimatePresence mode="wait">
-            {overrun ? (
-              <motion.div key="overrun" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="bg-primary flex items-center justify-center py-9 px-8">
-                <div className="text-center">
-                  <p className="text-base font-bold uppercase tracking-widest text-white">Critical: Budget Ceiling Exceeded</p>
-                  <p className="text-white/80 text-xs mt-2 tracking-wide">€47,200 realized vs €45,000 approved</p>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div key="normal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="grid grid-cols-4">
-                <DataCell><BigNum>€45,000</BigNum><SubLabel>Approved</SubLabel></DataCell>
-                <DataCell border><BigNum muted>€38,200</BigNum><SubLabel>Estimated</SubLabel></DataCell>
-                <DataCell border><BigNum>€31,500</BigNum><SubLabel>Realized</SubLabel></DataCell>
-                <DataCell border>
-                  <div className="flex items-baseline gap-1"><BigNum green>30%</BigNum></div>
-                  <div className="w-full h-0.5 bg-border mt-3 mb-1">
-                    <div className="h-full bg-accent" style={{ width: "30%" }} />
-                  </div>
-                  <SubLabel>Healthy margin</SubLabel>
-                </DataCell>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {overrun && (
+            <div className="bg-primary flex items-center justify-center py-4 px-8">
+              <div className="text-center">
+                <p className="text-sm font-bold uppercase tracking-widest text-white">Budget Ceiling Exceeded</p>
+                <p className="text-white/80 text-xs mt-1 tracking-wide">
+                  {formatEuro(totalCosts)} recorded vs {formatEuro(parsedBudget)} approved
+                </p>
+              </div>
+            </div>
+          )}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="grid grid-cols-4"
+          >
+            <DataCell>
+              <BigNum>{formatEuro(parsedBudget)}</BigNum>
+              <SubLabel>Approved</SubLabel>
+            </DataCell>
+            <DataCell border>
+              <BigNum muted>{formatEuro(totalCosts)}</BigNum>
+              <SubLabel>Estimated</SubLabel>
+            </DataCell>
+            <DataCell border>
+              <BigNum>{formatEuro(totalCosts)}</BigNum>
+              <SubLabel>Realized</SubLabel>
+            </DataCell>
+            <DataCell border>
+              <div className="flex items-baseline gap-1">
+                <BigNum green={!overrun}>{`${Math.round(profitMargin)}%`}</BigNum>
+              </div>
+              <div className="w-full h-0.5 bg-border mt-3 mb-1">
+                <div
+                  className={`h-full ${overrun ? "bg-primary" : "bg-accent"}`}
+                  style={{ width: `${Math.max(0, Math.min(100, profitMargin))}%` }}
+                />
+              </div>
+              <SubLabel>Net profit margin</SubLabel>
+            </DataCell>
+          </motion.div>
         </div>
 
         {/* Secondary metrics */}
         <div className="grid grid-cols-3 divide-x divide-border shrink-0">
-          <MetricCell label="Budget Utilization" value="70%"     sub="€31,500 of €45,000"       accent />
-          <MetricCell label="Cost Variance"       value="+€6,700" sub="Estimated vs Realized"            />
-          <MetricCell label="Invoiced to Date"    value="€28,000" sub="62% of approved budget"          />
+          <MetricCell
+            label="Budget Utilization"
+            value={`${Math.round(budgetUtilization)}%`}
+            sub={`${formatEuro(totalCosts)} of ${formatEuro(parsedBudget)}`}
+            accent
+          />
+          <MetricCell label="Cost Variance" value={formatEuro(0)} sub="Estimated vs Realized" />
+          <MetricCell label="Invoiced to Date" value="—" sub="No invoicing data recorded" />
         </div>
 
         {/* Budget Breakdown — separated section */}
@@ -212,9 +235,23 @@ function FinancePanel({ overrun, setOverrun, drawerOpen, setDrawerOpen, pendingC
             <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Utilization</p>
           </div>
 
-          {fixedExpenses.map((row) => (
-            <ExpenseRow key={row.label} {...row} />
-          ))}
+          {freelancerCosts.length === 0 ? (
+            <p className="px-7 py-5 text-xs text-muted-foreground">No costs recorded yet</p>
+          ) : (
+            freelancerCosts.map((cost) => {
+              const amount = isProBono ? 0 : parseCurrency(cost.amount);
+              return (
+                <ExpenseRow
+                  key={cost.name}
+                  label={cost.name}
+                  detail={isProBono ? `${cost.amount} — excluded from VĀC costs` : cost.amount}
+                  allocated={amount}
+                  spent={amount}
+                  pct={100}
+                />
+              );
+            })
+          )}
 
           {/* Pending cost rows injected on submit */}
           <AnimatePresence>
@@ -975,11 +1012,26 @@ function MetricCell({ label, value, sub, accent=false }: { label: string; value:
     </div>
   );
 }
-function ExpenseRow({ label, allocated, spent, pct }: { label: string; allocated: number; spent: number; pct: number }) {
+function ExpenseRow({
+  label,
+  detail,
+  allocated,
+  spent,
+  pct,
+}: {
+  label: string;
+  detail?: string;
+  allocated: number;
+  spent: number;
+  pct: number;
+}) {
   const isHigh = pct >= 85;
   return (
     <div className="grid grid-cols-[1fr_auto_auto_160px] items-center px-7 py-3.5 border-b border-border hover:bg-muted transition-colors">
-      <span className="text-xs font-medium text-foreground">{label}</span>
+       <div className="min-w-0">
+         <span className="text-xs font-medium text-foreground">{label}</span>
+         {detail && <p className="text-[9px] text-muted-foreground mt-0.5">{detail}</p>}
+       </div>
       <span className="text-xs text-foreground font-medium w-24 text-right">€{spent.toLocaleString()}</span>
       <span className="text-xs text-muted-foreground w-24 text-right mr-4">/ €{allocated.toLocaleString()}</span>
       <div className="flex items-center gap-2">

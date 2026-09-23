@@ -314,7 +314,10 @@ function ProjectDrilldown({
       {/* ── 3-zone workspace — exact dashboard layout ── */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
         <ZoneA />
-        <ZoneB onCostSubmitted={() => setPendingCount((n) => n + 1)} />
+        <ZoneB
+          project={project}
+          onCostSubmitted={() => setPendingCount((n) => n + 1)}
+        />
         <ZoneC pendingCount={pendingCount} />
       </div>
     </motion.div>

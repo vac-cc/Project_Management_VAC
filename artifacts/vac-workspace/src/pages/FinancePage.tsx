@@ -124,7 +124,7 @@ function ProjectManagementTab() {
   const [selectedId, setSelectedId] = useState(financeProjects[0]?.id ?? "");
   const selected = financeProjects.find((project) => project.id === selectedId) ?? financeProjects[0];
   const record = selected ? getProjectFinance(selected) : null;
-  const costCenters = record?.costCenters ?? [];
+  const costCenters = selected ? buildCostCenters(selected) : [];
   const totalApproved = costCenters.reduce(
     (sum, center) => sum + center.items.reduce((centerSum, line) => centerSum + line.approved, 0),
     0,
