@@ -145,6 +145,7 @@ export default function DashboardPage() {
   const totalClients = CLIENTS.length;
   const upcomingDeadlines = useMemo(() => buildUpcomingDeadlines(), []);
   const crewStream = useMemo(() => buildCrewStream(), []);
+  const actionItems: { id: string; label: string; detail: string; severity: "urgent" | "warning" }[] = [];
 
   function toggleChecked(id: string) {
     setChecked((c) => ({ ...c, [id]: !c[id] }));
@@ -342,61 +343,11 @@ export default function DashboardPage() {
               <ThumbsUp size={13} className="text-white" strokeWidth={2.5} />
               <p className="text-[10px] font-bold text-white uppercase tracking-[0.14em]">Immediate Approvals</p>
               <span className="ml-auto text-[9px] font-bold text-white/60 uppercase tracking-wider">
-                {approvalChips.length} pending
+                0 pending
               </span>
             </div>
             <div className="p-3 flex flex-wrap gap-2">
-              {approvalChips.length === 0 && (
-                <p className="px-2 py-3 text-[11px] text-muted-foreground">Nothing pending — every fee and permit is settled.</p>
-              )}
-              {approvalChips.map((chip) => {
-                if (chip.kind === "approval") {
-                  return (
-                    <div
-                      key={chip.id}
-                      data-testid={`chip-${chip.id}`}
-                      className="flex items-center gap-2 border border-black px-3 py-2 bg-[#f7f7f7]"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-[10px] font-bold text-foreground truncate">
-                          {chip.line.label} — €{chip.line.actual.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                        </p>
-                        <p className="text-[9px] text-muted-foreground truncate">{chip.project.client} · {chip.project.title}</p>
-                      </div>
-                      <button
-                        onClick={() => setApproval(chip.line.id, true)}
-                        data-testid={`chip-${chip.id}-approve`}
-                        className="shrink-0 px-2 py-1 text-[8px] font-bold uppercase tracking-wider border-2 transition-colors"
-                        style={{ borderColor: LEAF, color: LEAF, backgroundColor: "rgba(153,204,51,0.08)" }}
-                      >
-                        Approve
-                      </button>
-                    </div>
-                  );
-                }
-                return (
-                  <div
-                    key={chip.id}
-                    data-testid={`chip-${chip.id}`}
-                    className="flex items-center gap-2 border border-black px-3 py-2 bg-[#f7f7f7]"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-bold text-foreground truncate">
-                        {chip.line.label} — €{chip.line.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                      </p>
-                      <p className="text-[9px] text-muted-foreground truncate">{chip.line.sub}</p>
-                    </div>
-                    <button
-                      onClick={() => setOutflowPaid(chip.line.id, true)}
-                      data-testid={`chip-${chip.id}-confirm`}
-                      className="shrink-0 px-2 py-1 text-[8px] font-bold uppercase tracking-wider border-2 transition-colors"
-                      style={{ borderColor: TERRACOTTA, color: TERRACOTTA, backgroundColor: "rgba(191,87,0,0.08)" }}
-                    >
-                      Confirm Pay
-                    </button>
-                  </div>
-                );
-              })}
+              <p className="px-2 py-3 text-[11px] text-muted-foreground">No approval data recorded.</p>
             </div>
           </div>
 
@@ -512,6 +463,9 @@ export default function DashboardPage() {
               testId="widget-briefing-room"
             >
               <div className="divide-y divide-border">
+                {BRIEFINGS.length === 0 && (
+                  <p className="px-4 py-6 text-[11px] text-muted-foreground">No briefing room entries recorded.</p>
+                )}
                 {BRIEFINGS.map((b, i) => (
                   <div
                     key={i}
