@@ -10,6 +10,12 @@ import {
   Users,
 } from "lucide-react";
 import { PROJECTS, type Project } from "./ProjectsPage";
+import {
+  getProjectFinancialRecord,
+  PROJECT_FINANCIALS,
+  type FinanceCostLine,
+  type ProjectFinanceRecord,
+} from "../data/projectFinancials";
 
 // ── Tabs ─────────────────────────────────────────────────────
 
@@ -23,13 +29,7 @@ const FINANCE_TABS: { id: FinanceTab; label: string }[] = [
 
 // ── Real project finance records ─────────────────────────────
 
-export interface CostLine {
-  id: string;
-  label: string;
-  detail?: string;
-  approved: number;
-  actual: number;
-}
+export type CostLine = FinanceCostLine;
 
 export interface CostCenter {
   id: string;
@@ -43,13 +43,6 @@ interface ProjectTeamMember {
   role: string;
 }
 
-interface ProjectFinanceRecord {
-  budget: number;
-  team: ProjectTeamMember[];
-  costCenters: CostCenter[];
-  note?: string;
-}
-
 const COST_CENTER_DEFINITIONS: Omit<CostCenter, "items">[] = [
   { id: "hr", label: "Human Resources — Freelancer Costs", icon: Users },
   { id: "prod", label: "Production Costs", icon: HardHat },
@@ -61,63 +54,17 @@ function emptyCostCenters(): CostCenter[] {
   return COST_CENTER_DEFINITIONS.map((center) => ({ ...center, items: [] }));
 }
 
-const REAL_PROJECT_FINANCIALS: Record<string, ProjectFinanceRecord> = {
-  "BPC-002": {
-    budget: 120,
-    team: [
-      { name: "Anaís Almeida", role: "Designer" },
-      { name: "Catarina Pinto", role: "Strategist" },
-    ],
-    costCenters: emptyCostCenters(),
-    note: "No subcontractor costs recorded.",
-  },
-  "SML-001": {
-    budget: 800,
-    team: [
-      { name: "Pedro Oliveira", role: "Creative Director" },
-      { name: "Catarina Pinto", role: "Strategist & Designer" },
-      { name: "Íris Filipe", role: "Graphic Designer" },
-    ],
-    costCenters: COST_CENTER_DEFINITIONS.map((center) => ({
-      ...center,
-      items:
-        center.id === "hr"
-          ? [
-              {
-                id: "SML-001-pedro-oliveira",
-                label: "Pedro Oliveira",
-                detail: "Creative Director",
-                approved: 700,
-                actual: 700,
-              },
-              {
-                id: "SML-001-iris-filipe",
-                label: "Íris Filipe",
-                detail: "Graphic Designer",
-                approved: 240,
-                actual: 240,
-              },
-            ]
-          : [],
-    })),
-  },
-  "DIO-001": {
-    budget: 0,
-    team: [
-      { name: "Pedro Oliveira", role: "Creative Director" },
-      { name: "Catarina Pinto", role: "Strategist" },
-    ],
-    costCenters: emptyCostCenters(),
-    note: "Pedro Oliveira — €300 paid directly by client; no cost to VĀC.",
-  },
-};
-
 export function buildCostCenters(project: Project): CostCenter[] {
-  return REAL_PROJECT_FINANCIALS[project.id]?.costCenters ?? [];
+  const record = getProjectFinancialRecord(project.id);
+  if (!record) return [];
+  return COST_CENTER_DEFINITIONS.map((center) => ({
+    ...center,
+    items: center.id === "hr" ? record.costs : [],
+  }));
 }
 
 function getProjectFinance(project: Project): ProjectFinanceRecord | null {
-  return REAL_PROJECT_FINANCIALS[project.id] ?? null;
+  return getProjectFinancialRecord(project.id);
 }
 
 // ── Main page ────────────────────────────────────────────────
