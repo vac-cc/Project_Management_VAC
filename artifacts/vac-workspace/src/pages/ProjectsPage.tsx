@@ -8,7 +8,7 @@ import ZoneC from "../components/ZoneC";
 
 // ── Types ────────────────────────────────────────────────────
 
-export type ProjectStatus = "active" | "past";
+export type ProjectStatus = "active" | "past" | "not-started";
 
 export interface Milestone {
   label: string;
@@ -29,6 +29,7 @@ export interface Project {
   milestones: Milestone[];
   deliverables: string[];
   notes: string;
+  freelancerCosts?: { name: string; amount: string }[];
 }
 
 // ── Seed Data ────────────────────────────────────────────────
@@ -61,6 +62,40 @@ export const PROJECTS: Project[] = [
     crew: ["AA", "CP"],
     status: "active",
     milestones: [{ label: "Start", date: "Jun 2026" }],
+    deliverables: [],
+    notes: "",
+  },
+  {
+    id: "SML-001",
+    client: "Samuel",
+    clientId: "SML",
+    clientAccent: "#99CC33",
+    title: "Naming & Branding",
+    brief: "Development of brand naming and visual identity — naming creation, logo selection and brand foundations.",
+    tags: ["Naming", "Branding"],
+    budget: "€800",
+    crew: ["PO", "CP", "IF"],
+    status: "active",
+    milestones: [{ label: "Start", date: "May 2026" }],
+    deliverables: [],
+    notes: "",
+    freelancerCosts: [
+      { name: "Pedro Oliveira", amount: "€700" },
+      { name: "Íris Filipe", amount: "€240" },
+    ],
+  },
+  {
+    id: "SML-002",
+    client: "Samuel",
+    clientId: "SML",
+    clientAccent: "#99CC33",
+    title: "Digital & Applications",
+    brief: "Brand application strategy, website development and copy, and social media content strategy.",
+    tags: ["Branding Applications", "Website", "Social Media"],
+    budget: "€800",
+    crew: ["PO", "CP"],
+    status: "not-started",
+    milestones: [{ label: "Start", date: "Aug 2026" }],
     deliverables: [],
     notes: "",
   },
@@ -235,7 +270,7 @@ function ProjectDrilldown({
             className="text-[9px] font-bold uppercase tracking-wider px-2 py-1"
             style={accentStyle}
           >
-            {project.status === "active" ? "Active" : "Completed"}
+            {project.status === "active" ? "Active" : project.status === "past" ? "Completed" : "Not Yet Started"}
           </span>
           <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground border border-border px-2 py-1">
             {project.id}
@@ -295,6 +330,7 @@ export default function ProjectsPage() {
 
   const active = filtered.filter((p) => p.status === "active");
   const past = filtered.filter((p) => p.status === "past");
+  const notStarted = filtered.filter((p) => p.status === "not-started");
 
   return (
     <div className="relative flex-1 min-w-0 overflow-hidden flex flex-col h-full">
@@ -328,7 +364,7 @@ export default function ProjectsPage() {
             )}
           </div>
           <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
-            {active.length} Active · {past.length} Past
+            {active.length} Active · {notStarted.length} Not Started · {past.length} Past
           </span>
         </div>
 
@@ -350,6 +386,25 @@ export default function ProjectsPage() {
 
           {/* Divider */}
           {active.length > 0 && past.length > 0 && (
+            <div className="border-t border-black/15 mb-10" />
+          )}
+
+          {/* Not yet started projects */}
+          {notStarted.length > 0 && (
+            <div className={`${active.length > 0 ? "mb-10" : ""}`}>
+              <SectionLabel>Not Yet Started — {notStarted.length}</SectionLabel>
+              <div className="grid grid-cols-3 gap-4">
+                <AnimatePresence mode="popLayout">
+                  {notStarted.map((p) => (
+                    <ProjectCard key={p.id} project={p} onOpen={setSelected} />
+                  ))}
+                </AnimatePresence>
+              </div>
+            </div>
+          )}
+
+          {/* Divider */}
+          {notStarted.length > 0 && past.length > 0 && (
             <div className="border-t border-black/15 mb-10" />
           )}
 

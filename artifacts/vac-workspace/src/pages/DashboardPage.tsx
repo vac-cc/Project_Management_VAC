@@ -42,8 +42,8 @@ const MONTHS: Record<string, number> = {
 function parseMilestoneDate(raw: string): Date {
   const parts = raw.trim().split(/\s+/);
   const year = Number(parts[parts.length - 1]);
-  const month = MONTHS[parts[parts.length - 2]] ?? 0;
-  const day = Number(parts[0].split(/[–-]/)[0]);
+  const month = MONTHS[parts.length >= 2 ? parts[parts.length - 2] : parts[0]] ?? 0;
+  const day = parts.length >= 3 ? Number(parts[0].split(/[–-]/)[0]) : 1;
   return new Date(year, month, day);
 }
 

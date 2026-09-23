@@ -35,9 +35,9 @@ const CLIENTS = [
     linkedin: "not applicable",
     contact: { name: "Samuel Cristovão", email: "samuelrjcristovao@gmail.com", phone: "+351 912 059 628" },
     bio: "Samuel é uma marca de venda saloia de frutas e legumes. A VĀC desenvolve o projeto completo: naming, branding, logo, website, social media e aplicações de marca.",
-    activeProjects: [],
+    activeProjects: ["Naming & Branding"],
     profit: "€800",
-    projectCount: 0,
+    projectCount: 2,
     accentColor: "#99CC33",
   },
 ];
