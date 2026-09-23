@@ -54,6 +54,20 @@ export const CLIENTS = [
     projectCount: 1,
     accentColor: "#99CC33",
   },
+  {
+    id: "DIO",
+    name: "Dio's Coffee",
+    sector: "Specialty Coffee / Pop-up Concept",
+    website: "not yet available",
+    instagram: "@diocoffeee",
+    linkedin: "not applicable",
+    contact: { name: "Giovani Machado", email: "dioscoffeept@gmail.com", phone: "" },
+    bio: "Dio's is a pop-up specialty coffee concept built to go where people go — parks, streets, markets, events and festivals. VĀC developed the full brand: naming, identity, brand in use and mobile point of sale design.",
+    activeProjects: [],
+    profit: "€0",
+    projectCount: 0,
+    accentColor: "#99CC33",
+  },
 ];
 
 interface ClientBlockProps {
