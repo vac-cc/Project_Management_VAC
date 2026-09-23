@@ -11,7 +11,6 @@ import { CLIENTS } from "./ClientsPage";
 
 const LEAF = "#99CC33";
 const TERRACOTTA = "#BF5700";
-const TOTAL_PROFIT = 1020;
 
 // Fixed "today" anchor so the demo dataset (all seeded 2025–2026) always
 // resolves to a consistent, presentable relative timeline.
@@ -143,6 +142,7 @@ export default function DashboardPage() {
   const completedCount = PROJECTS.filter((p) => p.status === "past").length;
   const totalProjects = PROJECTS.length;
   const totalClients = CLIENTS.length;
+  const totalProfit = CLIENTS.reduce((total, client) => total + Number(client.profit.replace(/[^0-9]/g, "")), 0);
   const upcomingDeadlines = useMemo(() => buildUpcomingDeadlines(), []);
   const crewStream = useMemo(() => buildCrewStream(), []);
   const actionItems: { id: string; label: string; detail: string; severity: "urgent" | "warning" }[] = [];
@@ -321,7 +321,7 @@ export default function DashboardPage() {
               <ArrowUpRight size={13} className="text-muted-foreground group-hover:text-foreground transition-colors" />
             </div>
             <p className="text-[34px] font-bold tracking-tight mt-2 tabular-nums" data-testid="kpi-total-profit-value">
-              €{TOTAL_PROFIT.toLocaleString()}
+              €{totalProfit.toLocaleString()}
             </p>
             <p className="text-[10px] text-muted-foreground mt-1">recorded profit</p>
           </button>

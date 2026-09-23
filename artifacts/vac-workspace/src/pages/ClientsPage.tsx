@@ -40,6 +40,20 @@ export const CLIENTS = [
     projectCount: 2,
     accentColor: "#99CC33",
   },
+  {
+    id: "CRZ",
+    name: "Corteiz",
+    sector: "Streetwear & Fashion",
+    website: "corteiz.com",
+    instagram: "@corteiz",
+    linkedin: "not applicable",
+    contact: { name: "Amna", email: "", phone: "WhatsApp only" },
+    bio: "Corteiz is a global streetwear movement born in London in 2017, built on community, exclusivity and anti-conventional fashion culture. VĀC held local executive production coordination for the brand's 2026 Lisbon pop-up — space, set design, connectivity, green room and local hospitality.",
+    activeProjects: [],
+    profit: "€1,300",
+    projectCount: 0,
+    accentColor: "#99CC33",
+  },
 ];
 
 interface ClientBlockProps {
@@ -108,7 +122,7 @@ function ClientBlock({ client, index }: ClientBlockProps) {
                 className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Linkedin size={10} />
-                LinkedIn
+                {client.linkedin}
               </a>
             </div>
           </div>

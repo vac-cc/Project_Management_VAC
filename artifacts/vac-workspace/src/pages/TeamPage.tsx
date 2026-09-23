@@ -63,7 +63,7 @@ export const SEED_TEAM: TeamMember[] = [
     bio: "Marta crafts language that makes brands feel inevitable. She has written for luxury hospitality, F&B, and cultural institutions across Portugal and Spain, developing tone-of-voice guidelines used by entire creative teams.",
     cv: "#", portfolio: "#",
     projects: [
-      "Cortezi — Clothing Pop-Up Lisbon",
+      "Corteiz — Clothing Pop-Up Lisbon",
     ],
   },
   {
