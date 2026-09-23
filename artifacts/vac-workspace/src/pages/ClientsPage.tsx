@@ -11,7 +11,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-const CLIENTS = [
+export const CLIENTS = [
   {
     id: "BPC",
     name: "Beach Pizza",

@@ -2,33 +2,16 @@ import React, { useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import {
   AlertTriangle, ArrowUpRight, CalendarClock, CheckCircle2,
-  CircleDollarSign, Clock, FolderKanban, Landmark, MessageSquareText,
-  ThumbsUp, Users2, Wallet,
+  CircleDollarSign, FolderKanban, MessageSquareText,
+  Users2, Wallet,
 } from "lucide-react";
 import { PROJECTS, type Project } from "./ProjectsPage";
 import { SEED_TEAM } from "./TeamPage";
-import {
-  buildCostCenters,
-  buildLicensingOutflows,
-  computeAgencyGlobals,
-  computeCurrentMonthLedger,
-  computeFinancialControl,
-  computeYearlyState,
-  DEFAULT_MONTHLY_BURN,
-  generateInvoices,
-  MONTHLY_PROFIT_TARGET,
-  RUNWAY_SAFE_THRESHOLD_MONTHS,
-  resolveApproval,
-  resolveOutflowPaid,
-  TAX_DEADLINES,
-  YEARLY_PROFIT_TARGET,
-  type CostLine,
-  type OutflowLine,
-} from "./FinancePage";
-import { useOperationsState } from "@/state/OperationsState";
+import { CLIENTS } from "./ClientsPage";
 
 const LEAF = "#99CC33";
 const TERRACOTTA = "#BF5700";
+const TOTAL_PROFIT = 1020;
 
 // Fixed "today" anchor so the demo dataset (all seeded 2025–2026) always
 // resolves to a consistent, presentable relative timeline.
@@ -73,111 +56,6 @@ function buildUpcomingDeadlines(): DeadlineEntry[] {
   return entries.sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, 5);
 }
 
-// ── Immediate approvals: pending HR cost-line approvals + pending
-// licensing/permit outflow payments — the two transactional actions the
-// brief calls out (approve a fee, confirm a permit payment). ──
-
-interface PendingApprovalChip {
-  kind: "approval";
-  id: string;
-  line: CostLine;
-  project: Project;
-}
-interface PendingPaymentChip {
-  kind: "payment";
-  id: string;
-  line: OutflowLine;
-}
-type ActionChip = PendingApprovalChip | PendingPaymentChip;
-
-function buildImmediateApprovals(approvals: Record<string, boolean>, outflowOverrides: Record<string, boolean>): ActionChip[] {
-  const chips: ActionChip[] = [];
-  const activeProjects = PROJECTS.filter((p) => p.status === "active");
-
-  for (const project of activeProjects) {
-    const centers = buildCostCenters(project, false);
-    const hr = centers.find((c) => c.id === "hr");
-    if (!hr) continue;
-    for (const line of hr.items) {
-      if (!resolveApproval(line, approvals)) {
-        chips.push({ kind: "approval", id: `approval-${line.id}`, line, project });
-      }
-    }
-  }
-
-  for (const line of buildLicensingOutflows()) {
-    if (!resolveOutflowPaid(line, outflowOverrides)) {
-      chips.push({ kind: "payment", id: `payment-${line.id}`, line });
-    }
-  }
-
-  return chips;
-}
-
-// ── Urgent action items ──────────────────────────────────────
-
-interface ActionItem {
-  id: string;
-  label: string;
-  detail: string;
-  severity: "urgent" | "warning";
-}
-
-function buildActionItems(netProfit: number, approvals: Record<string, boolean>): ActionItem[] {
-  const items: ActionItem[] = [];
-  const activeProjects = PROJECTS.filter((p) => p.status === "active");
-
-  for (const project of activeProjects) {
-    const centers = buildCostCenters(project, false);
-    for (const center of centers) {
-      for (const line of center.items) {
-        const overrunPct = line.approved > 0 ? (line.actual - line.approved) / line.approved : 0;
-        if (overrunPct > 0.15) {
-          items.push({
-            id: `overrun-${line.id}`,
-            label: `Over-Budget Alert — ${line.label}`,
-            detail: `${project.client} · ${project.title} — €${line.actual.toLocaleString()} actual vs €${line.approved.toLocaleString()} approved (+${Math.round(overrunPct * 100)}%)`,
-            severity: "urgent",
-          });
-        } else if (!resolveApproval(line, approvals)) {
-          items.push({
-            id: `approval-${line.id}`,
-            label: `Cost Approval Pending — ${line.label}`,
-            detail: `${project.client} · ${project.title} — €${line.actual.toLocaleString()} awaiting sign-off`,
-            severity: "warning",
-          });
-        }
-      }
-    }
-  }
-
-  const runwayMonths = DEFAULT_MONTHLY_BURN > 0 ? netProfit / DEFAULT_MONTHLY_BURN : Infinity;
-  if (runwayMonths < RUNWAY_SAFE_THRESHOLD_MONTHS) {
-    items.unshift({
-      id: "runway-alert",
-      label: "Liquidity Runway Below Safety Threshold",
-      detail: `Current runway is ${runwayMonths.toFixed(1)} months — below the ${RUNWAY_SAFE_THRESHOLD_MONTHS}-month floor`,
-      severity: "urgent",
-    });
-  }
-
-  const nextTax = [...TAX_DEADLINES].sort((a, b) => a.date.getTime() - b.date.getTime())[0];
-  if (nextTax) {
-    const days = daysUntil(nextTax.date);
-    if (days <= 21) {
-      items.unshift({
-        id: "tax-alert",
-        label: `Tax Milestone Approaching — ${nextTax.label}`,
-        detail: `Due in ${days} day${days === 1 ? "" : "s"} · ${nextTax.sub}`,
-        severity: days <= 7 ? "urgent" : "warning",
-      });
-    }
-  }
-
-  const rank = { urgent: 0, warning: 1 } as const;
-  return items.sort((a, b) => rank[a.severity] - rank[b.severity]).slice(0, 6);
-}
-
 // ── Active crew blueprint ────────────────────────────────────
 
 function buildCrewStream() {
@@ -205,14 +83,12 @@ function buildCrewStream() {
         primaryProject: data.projects[0],
       };
     })
-    .sort((a, b) => b.count - a.count);
+    .sort((a, b) => ["PO", "CP", "AA", "IF"].indexOf(a.initials) - ["PO", "CP", "AA", "IF"].indexOf(b.initials));
 }
 
 // ── Briefing room (today's strategic syncs) ──────────────────
 
-const BRIEFINGS = [
-  { time: "09:30", title: "Weekly Ops Standup", type: "Internal Sync" },
-];
+const BRIEFINGS: { time: string; title: string; type: string }[] = [];
 
 // ── Small shared shell ────────────────────────────────────────
 
