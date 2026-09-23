@@ -99,6 +99,21 @@ export const PROJECTS: Project[] = [
     deliverables: [],
     notes: "",
   },
+  {
+    id: "CRZ-001",
+    client: "Corteiz",
+    clientId: "CRZ",
+    clientAccent: "#99CC33",
+    title: "Lisbon Pop-Up Production",
+    brief: "Local executive production coordination for Corteiz's Lisbon pop-up — space sourcing, set design, supplier management, connectivity, green room and on-site operation. A temporary space made to feel like Corteiz always belonged there.",
+    tags: ["Live Marketing", "Events", "Production", "Experiential"],
+    budget: "€1,300",
+    crew: ["CP"],
+    status: "past",
+    milestones: [{ label: "Start", date: "19 Jun 2026" }],
+    deliverables: [],
+    notes: "Catarina Pinto — Executive Producer; solo, no subcontractors.",
+  },
 ];
 
 // ── Crew palette (mirrors ASSIGNEE_PALETTE) ──────────────────

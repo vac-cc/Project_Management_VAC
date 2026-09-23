@@ -114,6 +114,7 @@ export const SEED_TEAM: TeamMember[] = [
       "Beach Pizza — Cavalete",
       "Samuel — Naming & Branding",
       "Samuel — Digital & Applications",
+      "Corteiz — Lisbon Pop-Up Production",
     ],
   },
   {

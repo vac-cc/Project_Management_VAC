@@ -51,7 +51,7 @@ export const CLIENTS = [
     bio: "Corteiz is a global streetwear movement born in London in 2017, built on community, exclusivity and anti-conventional fashion culture. VĀC held local executive production coordination for the brand's 2026 Lisbon pop-up — space, set design, connectivity, green room and local hospitality.",
     activeProjects: [],
     profit: "€1,300",
-    projectCount: 0,
+    projectCount: 1,
     accentColor: "#99CC33",
   },
 ];
