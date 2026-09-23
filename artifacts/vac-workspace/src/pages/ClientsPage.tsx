@@ -11,7 +11,22 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-const CLIENTS = [];
+const CLIENTS = [
+  {
+    id: "SML",
+    name: "Samuel",
+    sector: "Frutas e Legumes",
+    website: "not yet available",
+    instagram: "not yet available",
+    linkedin: "not applicable",
+    contact: { name: "Samuel Cristovão", email: "samuelrjcristovao@gmail.com", phone: "+351 912 059 628" },
+    bio: "Samuel é uma marca de venda saloia de frutas e legumes. A VĀC desenvolve o projeto completo: naming, branding, logo, website, social media e aplicações de marca.",
+    activeProjects: [],
+    profit: "€800",
+    projectCount: 0,
+    accentColor: "#99CC33",
+  },
+];
 
 interface ClientBlockProps {
   client: (typeof CLIENTS)[0];
@@ -154,7 +169,7 @@ function ClientBlock({ client, index }: ClientBlockProps) {
 }
 
 export default function ClientsPage() {
-  const totalProfit = "€156,450";
+  const totalProfit = CLIENTS.reduce((total, client) => total + Number(client.profit.replace(/[^0-9]/g, "")), 0);
   const totalProjects = CLIENTS.reduce((s, c) => s + c.projectCount, 0);
   const totalActive  = CLIENTS.reduce((s, c) => s + c.activeProjects.length, 0);
 
@@ -182,7 +197,7 @@ export default function ClientsPage() {
           </div>
           <div className="px-6 py-3">
             <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider block">Total Profit</span>
-            <span className="text-lg font-bold text-foreground">{totalProfit}</span>
+            <span className="text-lg font-bold text-foreground">€{totalProfit.toLocaleString()}</span>
           </div>
         </div>
       </div>

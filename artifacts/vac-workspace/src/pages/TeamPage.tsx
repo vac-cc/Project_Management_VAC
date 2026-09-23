@@ -372,7 +372,7 @@ function AddCollaboratorModal({ onClose, onAdd }: { onClose: () => void; onAdd: 
           {mode === "manual" ? (
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-4">
-                {field("Full Name", "name", "Catarina Figueiredo")}
+                {field("Full Name", "name", "Full name")}
                 {field("Role / Job Title", "role", "Senior Designer")}
               </div>
               {field("Skills", "skills", "Brand Design, Illustration, Motion Graphics (comma-separated)")}
