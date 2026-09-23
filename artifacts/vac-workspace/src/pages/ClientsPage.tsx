@@ -13,6 +13,20 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 const CLIENTS = [
   {
+    id: "BPC",
+    name: "Beach Pizza",
+    sector: "Food & Beverage",
+    website: "not yet available",
+    instagram: "not yet available",
+    linkedin: "not applicable",
+    contact: { name: "Not yet specified", email: "", phone: "" },
+    bio: "",
+    activeProjects: ["Brand Book", "Cavalete"],
+    profit: "€270",
+    projectCount: 2,
+    accentColor: "#99CC33",
+  },
+  {
     id: "SML",
     name: "Samuel",
     sector: "Frutas e Legumes",

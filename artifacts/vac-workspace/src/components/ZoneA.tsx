@@ -15,6 +15,8 @@ const ZONE_A_PALETTE: Record<string, PatternEntry> = {
 
 const COLLABORATORS = [
   { initials: "AL", name: "Ana Lima", role: "Account Manager", email: "ana@vac-cc.com", key: "AL" },
+  { initials: "CP", name: "Catarina Pinto", role: "Strategist & Designer", email: "", key: "Catarina Pinto" },
+  { initials: "AA", name: "Anaís Almeida", role: "Designer", email: "", key: "Anaís" },
 ];
 
 const BRIEF_ITEMS = [

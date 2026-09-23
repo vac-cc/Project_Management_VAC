@@ -106,7 +106,10 @@ export const SEED_TEAM: TeamMember[] = [
     skills: [],
     bio: "",
     cv: "#", portfolio: "#",
-    projects: [],
+    projects: [
+      "Beach Pizza — Brand Book",
+      "Beach Pizza — Cavalete",
+    ],
   },
   {
     id: "AA",
@@ -120,7 +123,9 @@ export const SEED_TEAM: TeamMember[] = [
     skills: [],
     bio: "",
     cv: "#", portfolio: "#",
-    projects: [],
+    projects: [
+      "Beach Pizza — Cavalete",
+    ],
   },
   {
     id: "IF",

@@ -25,6 +25,8 @@ const SEED_MESSAGES: ChatMessage[] = [
 
 // Collaborator list — synced with Zone A & Zone B
 const MENTION_LIST = [
+  { initials: "CP", name: "Catarina Pinto" },
+  { initials: "AA", name: "Anaís" },
   { initials: "AL", name: "Ana"      },
   { initials: "MT", name: "Marta"    },
   { initials: "TG", name: "Tiago"    },

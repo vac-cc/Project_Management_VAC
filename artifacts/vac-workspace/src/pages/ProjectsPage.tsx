@@ -34,7 +34,36 @@ export interface Project {
 // ── Seed Data ────────────────────────────────────────────────
 
 export const PROJECTS: Project[] = [
-  
+  {
+    id: "BPC-001",
+    client: "Beach Pizza",
+    clientId: "BPC",
+    clientAccent: "#99CC33",
+    title: "Brand Book",
+    brief: "Consolidation of brand story, identity rules, brand values and visual standards — built to support future franchise expansion.",
+    tags: ["Brand Strategy", "Identity"],
+    budget: "€150",
+    crew: ["CP"],
+    status: "past",
+    milestones: [{ label: "Start", date: "Mar 2026" }],
+    deliverables: [],
+    notes: "",
+  },
+  {
+    id: "BPC-002",
+    client: "Beach Pizza",
+    clientId: "BPC",
+    clientAccent: "#99CC33",
+    title: "Cavalete",
+    brief: "Design and brand integration for a cavalete to promote summer products in-store.",
+    tags: ["Design", "Print"],
+    budget: "€120",
+    crew: ["AA", "CP"],
+    status: "active",
+    milestones: [{ label: "Start", date: "Jun 2026" }],
+    deliverables: [],
+    notes: "",
+  },
 ];
 
 // ── Crew palette (mirrors ASSIGNEE_PALETTE) ──────────────────
