@@ -95,7 +95,7 @@ function buildImmediateApprovals(approvals: Record<string, boolean>, outflowOver
   const activeProjects = PROJECTS.filter((p) => p.status === "active");
 
   for (const project of activeProjects) {
-    const centers = buildCostCenters(project, project.id === "BPC-001");
+    const centers = buildCostCenters(project, false);
     const hr = centers.find((c) => c.id === "hr");
     if (!hr) continue;
     for (const line of hr.items) {
@@ -128,7 +128,7 @@ function buildActionItems(netProfit: number, approvals: Record<string, boolean>)
   const activeProjects = PROJECTS.filter((p) => p.status === "active");
 
   for (const project of activeProjects) {
-    const centers = buildCostCenters(project, project.id === "BPC-001");
+    const centers = buildCostCenters(project, false);
     for (const center of centers) {
       for (const line of center.items) {
         const overrunPct = line.approved > 0 ? (line.actual - line.approved) / line.approved : 0;
@@ -212,9 +212,6 @@ function buildCrewStream() {
 
 const BRIEFINGS = [
   { time: "09:30", title: "Weekly Ops Standup", type: "Internal Sync" },
-  { time: "11:00", title: "Beach Pizza Cascais — Brand Strategy Review", type: "Client Presentation" },
-  { time: "14:00", title: "Comporta Fine Stays — Identity Concept Check-in", type: "Creative Review" },
-  { time: "16:30", title: "Estuário Studio — SEO Progress Call", type: "Client Sync" },
 ];
 
 // ── Small shared shell ────────────────────────────────────────

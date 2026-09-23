@@ -495,7 +495,7 @@ function CostForm({ onClose, onSubmit }: { onClose: () => void; onSubmit: (data:
           )}
         </button>
         <p className="text-[9px] text-muted-foreground text-center mt-3 uppercase tracking-wider">
-          Routed to Catarina Figueiredo · Creative Director
+           Routed to project lead for approval
         </p>
       </div>
     </>
@@ -527,11 +527,11 @@ const TODAY_COL = 7; // Jul 1 = column index 7 (0-based)
 
 const GANTT_TASKS = [
   { task:"Scenography Build",   assignee:"Marta",    start:0,  end:5,  status:"done"     },
-  { task:"Copywriting Review",  assignee:"Catarina", start:2,  end:6,  status:"done"     },
+  { task:"Copywriting Review",  assignee:"Pedro",    start:2,  end:6,  status:"done"     },
   { task:"Print Proofing",      assignee:"Tiago",    start:4,  end:9,  status:"active"   },
-  { task:"Photography Session", assignee:"JP",       start:6,  end:11, status:"critical" },
+  { task:"Photography Session", assignee:"Anaís",    start:6,  end:11, status:"critical" },
   { task:"Motion Graphics",     assignee:"Tiago",    start:9,  end:13, status:"upcoming" },
-  { task:"Client Review",       assignee:"Miguel",   start:11, end:14, status:"upcoming" },
+  { task:"Client Review",       assignee:"Íris",     start:11, end:14, status:"upcoming" },
   { task:"Final Export",        assignee:"Marta",    start:13, end:15, status:"upcoming" },
 ];
 
@@ -571,7 +571,7 @@ function TimelinePanel() {
               <span className="text-accent font-bold text-sm leading-none">/</span>
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Production Schedule</p>
             </div>
-            <p className="text-xs text-foreground font-medium mt-0.5">Beach Pizza Cascais · Active: Production Phase</p>
+            <p className="text-xs text-foreground font-medium mt-0.5">Current Project · Active: Production Phase</p>
           </div>
           <span className="flex items-center gap-1.5 text-[10px] font-bold text-primary uppercase tracking-wider">
             <span className="w-1.5 h-1.5 bg-primary" style={{ animation:"pulse 2s infinite" }} />
@@ -765,7 +765,7 @@ function TimelinePanel() {
                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">Detailed Production Timeline</p>
                   </div>
                   <h2 className="text-sm font-bold text-foreground tracking-tight mt-0.5">
-                    Beach Pizza Cascais · Jun 22 – Jul 10 2026
+                    Current Project · Jun 22 – Jul 10 2026
                     <span className="ml-3 text-[9px] font-bold text-primary uppercase tracking-wider border border-primary/30 px-1.5 py-0.5">
                       Today: Wed 1 Jul 2026
                     </span>

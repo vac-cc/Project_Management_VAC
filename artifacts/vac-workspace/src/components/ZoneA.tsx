@@ -14,10 +14,7 @@ const ZONE_A_PALETTE: Record<string, PatternEntry> = {
 };
 
 const COLLABORATORS = [
-  { initials: "CF", name: "Catarina Figueiredo", role: "Creative Director", email: "catarina@vac-cc.com", key: "Catarina" },
-  { initials: "MS", name: "Miguel Santos",       role: "Strategy Lead",     email: "miguel@vac-cc.com",   key: "Miguel"   },
-  { initials: "JP", name: "João Pereira",        role: "Art Director",      email: "joao@vac-cc.com",     key: "JP"       },
-  { initials: "AL", name: "Ana Lima",            role: "Account Manager",   email: "ana@vac-cc.com",      key: "AL"       },
+  { initials: "AL", name: "Ana Lima", role: "Account Manager", email: "ana@vac-cc.com", key: "AL" },
 ];
 
 const BRIEF_ITEMS = [
@@ -64,8 +61,8 @@ export default function ZoneA() {
 
         {/* Client Header */}
         <div className="px-6 py-6">
-          <h2 className="text-xl font-bold tracking-tight leading-tight text-foreground">Beach Pizza Cascais</h2>
-          <p className="text-xs text-muted-foreground font-medium mt-1.5">Brand Strategy</p>
+          <h2 className="text-xl font-bold tracking-tight leading-tight text-foreground">Project Workspace</h2>
+          <p className="text-xs text-muted-foreground font-medium mt-1.5">Project Overview</p>
           <div className="flex gap-1.5 mt-4">
             <SocialIcon icon={Globe}       label="Website"   />
             <SocialIcon icon={SiInstagram} label="Instagram" />
@@ -265,7 +262,7 @@ function DocumentModal({ title, onClose }: { title: string; onClose: () => void 
             {/* Doc title */}
             <h1 className="text-xl font-bold tracking-tight text-foreground mb-1">{title}</h1>
             <p className="text-[10px] text-muted-foreground mb-8 uppercase tracking-wider">
-              Project: Beach Pizza Cascais · Brand Strategy 2026
+              Project Workspace · Current Brief
             </p>
 
             {/* Simulated body sections */}

@@ -96,7 +96,9 @@ export const PATTERN_BANK: Record<string, PatternEntry> = {
 export const ASSIGNEE_PALETTE: Record<string, PatternEntry> = {
   "Marta":    PATTERN_BANK.solidGreen,
   "Tiago":    PATTERN_BANK.solidTerracotta,
-  "Catarina": PATTERN_BANK.stripedGreen,
-  "JP":       PATTERN_BANK.stripedTerracotta,
-  "Miguel":   PATTERN_BANK.dottedGreen,
+  "Ana":      PATTERN_BANK.crosshatchTerracotta,
+  "Pedro":    PATTERN_BANK.stripedGreen,
+  "Catarina Pinto": PATTERN_BANK.dottedGreen,
+  "Anaís":    PATTERN_BANK.solidTerracotta,
+  "Íris":     PATTERN_BANK.stripedTerracotta,
 };

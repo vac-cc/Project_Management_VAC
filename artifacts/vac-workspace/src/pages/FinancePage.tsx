@@ -140,7 +140,6 @@ export function buildCostCenters(project: Project, forceOverrun: boolean): CostC
 
 // Approved master agreement values, keyed by project id
 export const MASTER_AGREEMENT: Record<string, number> = {
-  "BPC-001": 42000,
 };
 
 function parseBudget(budget: string): number {
@@ -161,7 +160,7 @@ export interface ProjectFinancials {
 // projects without an explicit master agreement derive revenue from their own approved
 // cost total (+8% margin), never from the unrelated display-only `budget` label.
 export function computeProjectFinancials(project: Project): ProjectFinancials {
-  const costCenters = buildCostCenters(project, project.id === "BPC-001");
+  const costCenters = buildCostCenters(project, false);
   const totalApproved = costCenters.reduce((s, c) => s + c.items.reduce((s2, i) => s2 + i.approved, 0), 0);
   const cogs = costCenters.reduce((s, c) => s + c.items.reduce((s2, i) => s2 + i.actual, 0), 0);
   const grossRevenue = MASTER_AGREEMENT[project.id] ?? Math.round(totalApproved * 1.08);
@@ -176,7 +175,7 @@ function ProjectManagementTab() {
   const selected = activeProjects.find((p) => p.id === selectedId) ?? activeProjects[0];
 
   const costCenters = useMemo(
-    () => (selected ? buildCostCenters(selected, selected.id === "BPC-001") : []),
+    () => (selected ? buildCostCenters(selected, false) : []),
     [selected]
   );
 
@@ -955,7 +954,7 @@ export function generateInvoices(): InvoiceRecord[] {
 function collectInvoicedCostLines(centerId: "hr" | "lic"): OutflowLine[] {
   const lines: OutflowLine[] = [];
   for (const project of PROJECTS.filter((p) => p.status === "active")) {
-    const center = buildCostCenters(project, project.id === "BPC-001").find((c) => c.id === centerId);
+    const center = buildCostCenters(project, false).find((c) => c.id === centerId);
     if (!center) continue;
     for (const item of center.items) {
       if (item.invoice) {

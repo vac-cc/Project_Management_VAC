@@ -11,64 +11,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-const CLIENTS = [
-  {
-    id: "BPC",
-    name: "Beach Pizza Cascais",
-    sector: "Food & Beverage",
-    website: "beachpizzacascais.pt",
-    instagram: "@beachpizzacascais",
-    linkedin: "beach-pizza-cascais",
-    contact: { name: "Ricardo Mendes", email: "r.mendes@bpcascais.pt", phone: "+351 912 345 678" },
-    bio: "A beloved coastal F&B concept rooted in Cascais culture. Beach Pizza Cascais blends relaxed Mediterranean dining with a sharp, community-driven brand identity. VĀC partners across brand strategy, campaign design, and event communications.",
-    activeProjects: ["Brand Strategy Q3", "Summer Event Campaign", "Social Content Series"],
-    profit: "€28,500",
-    projectCount: 4,
-    accentColor: "#99CC33",
-  },
-  {
-    id: "LSH",
-    name: "Lisbon Surf House",
-    sector: "Hospitality & Lifestyle",
-    website: "lisbonsurfhouse.com",
-    instagram: "@lisbonsurfhouse",
-    linkedin: "lisbon-surf-house",
-    contact: { name: "Sofia Alves", email: "sofia@lisbonsurfhouse.com", phone: "+351 926 789 012" },
-    bio: "An independent boutique lifestyle brand anchored in surf culture and Atlantic living. Lisbon Surf House commissioned VĀC to build a complete brand identity from the ground up — visual system, tone of voice, and digital presence.",
-    activeProjects: ["Brand Identity Rollout"],
-    profit: "€42,000",
-    projectCount: 6,
-    accentColor: "#BF5700",
-  },
-  {
-    id: "ES",
-    name: "Estuário Studio",
-    sector: "Architecture & Interior Design",
-    website: "estuariostudio.pt",
-    instagram: "@estuariostudio",
-    linkedin: "estuario-studio",
-    contact: { name: "Paulo Ferreira", email: "paulo@estuariostudio.pt", phone: "+351 938 234 567" },
-    bio: "A Lisbon-based architecture practice defining contemporary Iberian design. Estuário Studio engaged VĀC for a strategic digital repositioning — refreshing their editorial presence, portfolio architecture, and brand communication to attract international clients.",
-    activeProjects: ["Digital Strategy & SEO", "Brand Communication Audit"],
-    profit: "€18,750",
-    projectCount: 3,
-    accentColor: "#99CC33",
-  },
-  {
-    id: "CFS",
-    name: "Comporta Fine Stays",
-    sector: "Luxury Tourism & Real Estate",
-    website: "comportafinestays.com",
-    instagram: "@comportafinestays",
-    linkedin: "comporta-fine-stays",
-    contact: { name: "Helena Vasconcelos", email: "h.vasconcelos@comportafine.com", phone: "+351 965 456 789" },
-    bio: "A curated collection of private luxury properties in the Comporta region. VĀC is the agency of record for Comporta Fine Stays — managing all brand communications, visual identity updates, seasonal campaign design, and social media strategy.",
-    activeProjects: ["Visual Identity Refresh", "Autumn Social Campaign", "Print Collateral Suite"],
-    profit: "€67,200",
-    projectCount: 9,
-    accentColor: "#BF5700",
-  },
-];
+const CLIENTS = [];
 
 interface ClientBlockProps {
   client: (typeof CLIENTS)[0];

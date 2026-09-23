@@ -20,17 +20,11 @@ type ChatMessage = {
 };
 
 const SEED_MESSAGES: ChatMessage[] = [
-  { initials: "CF", name: "Catarina F.", paletteKey: "Catarina", message: "The event layout is confirmed for the 24th.",       isSelf: false },
-  { initials: "MS", name: "Miguel S.",   paletteKey: "Miguel",   message: "Great. I'll have the sponsor decks ready by EOD.", isSelf: false },
   { initials: "You", name: "You",        paletteKey: "You",      message: "Copy. Sending the venue brief now.",                isSelf: true  },
-  { initials: "CF", name: "Catarina F.", paletteKey: "Catarina", message: "Perfect, thanks!",                                 isSelf: false },
 ];
 
 // Collaborator list — synced with Zone A & Zone B
 const MENTION_LIST = [
-  { initials: "CF", name: "Catarina" },
-  { initials: "MS", name: "Miguel"   },
-  { initials: "JP", name: "JP"       },
   { initials: "AL", name: "Ana"      },
   { initials: "MT", name: "Marta"    },
   { initials: "TG", name: "Tiago"    },
@@ -75,7 +69,7 @@ export default function ZoneC({ pendingCount }: ZoneCProps) {
           initials: "OS",
           name: "VĀC OS",
           paletteKey: "OS",
-          message: `Cost submission received. Routing to Catarina Figueiredo for approval. (#${String(pendingCount).padStart(3, "0")})`,
+           message: `Cost submission received. Routing to the project lead for approval. (#${String(pendingCount).padStart(3, "0")})`,
           isSelf: false,
         },
       ]);
@@ -132,8 +126,7 @@ export default function ZoneC({ pendingCount }: ZoneCProps) {
     e.target.value = "";
   };
 
-  const cfPalette = ZONE_C_PALETTE["Catarina"];
-  const msPalette = ZONE_C_PALETTE["Miguel"];
+  const alPalette = ZONE_C_PALETTE["AL"];
 
   return (
     <motion.div
@@ -169,12 +162,8 @@ export default function ZoneC({ pendingCount }: ZoneCProps) {
             <div className="flex -space-x-1">
               <div
                 className="w-5 h-5 border border-white flex items-center justify-center text-[8px] font-bold shrink-0"
-                style={{ ...cfPalette.bar, color: cfPalette.text }}
-              >CF</div>
-              <div
-                className="w-5 h-5 border border-white flex items-center justify-center text-[8px] font-bold shrink-0"
-                style={{ ...msPalette.bar, color: msPalette.text }}
-              >MS</div>
+                style={{ ...alPalette.bar, color: alPalette.text }}
+              >AL</div>
             </div>
           </div>
         </div>
@@ -289,15 +278,15 @@ export default function ZoneC({ pendingCount }: ZoneCProps) {
             <div className="flex items-start gap-2.5">
               <CircleDashed size={13} className="text-primary animate-spin shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs font-bold text-primary">Awaiting Catarina's Approval</p>
-                <p className="text-[10px] text-muted-foreground mt-1">Beach Pizza Cascais · Brand Strategy</p>
+              <p className="text-xs font-bold text-primary">Awaiting Project Lead Approval</p>
+              <p className="text-[10px] text-muted-foreground mt-1">Current Project · Current Brief</p>
               </div>
             </div>
           </div>
         ) : (
           <div className="px-5 py-4 bg-muted shrink-0">
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Send to <span className="text-foreground font-semibold">Catarina Figueiredo</span> for sign-off before production begins.
+              Send to the <span className="text-foreground font-semibold">project lead</span> for sign-off before production begins.
             </p>
           </div>
         )}

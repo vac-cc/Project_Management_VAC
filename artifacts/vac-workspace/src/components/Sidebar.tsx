@@ -25,9 +25,10 @@ const navItems = [
 ];
 
 const TEAM_AVATARS = [
-  { initials: "CF", palette: PATTERN_BANK.stripedGreen    },
-  { initials: "MS", palette: PATTERN_BANK.dottedGreen     },
-  { initials: "JP", palette: PATTERN_BANK.stripedTerracotta },
+  { initials: "PO", palette: PATTERN_BANK.stripedGreen },
+  { initials: "CP", palette: PATTERN_BANK.dottedGreen },
+  { initials: "AA", palette: PATTERN_BANK.solidTerracotta },
+  { initials: "IF", palette: PATTERN_BANK.stripedTerracotta },
 ];
 
 interface SidebarProps {
