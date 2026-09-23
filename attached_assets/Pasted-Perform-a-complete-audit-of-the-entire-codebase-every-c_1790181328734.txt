@@ -1,0 +1,58 @@
+Perform a complete audit of the entire codebase — every component, data file, constant, mock file, seed data, and hardcoded string. Find and remove all dummy, placeholder or fictional data. Then replace or confirm the correct real values below.
+
+WHAT TO REMOVE — purge any trace of:
+- Fictional clients: Beach Pizza Cascais, Lisbon Surf House, Estuário Studio, Comporta Fine Stays
+- Fictional contacts: Ricardo Mendes, Sofia Alves, Paulo Ferreira, Helena Vasconcelos and any associated fake emails or phone numbers
+- Fictional team members: Ana Lima (AL), Marta Rodrigues (MR), Tiago Costa (TC), and old initials CF / MS / JP
+- Any financial figure not matching the real values listed below
+- Any fictional project names, descriptions or line items not matching the 7 real projects
+- Placeholder or lorem ipsum text anywhere in the app — Vault, Settings, Dashboard, Briefing Room, anywhere
+
+WHAT TO CONFIRM AND KEEP — these are the only correct values:
+
+CLIENTS (3 real):
+- SML — Samuel | Frutas e Legumes | Samuel Cristovão | samuelrjcristovao@gmail.com | +351 912 059 628 | total profit €800
+- BPC — Beach Pizza | Restaurant | Franck Machado | +351 937 391 107 | total profit €220
+- CRZ — Corteiz | Streetwear & Fashion | Amna (WhatsApp only) | total profit €1,300
+- DIO — Dio's Coffee | Specialty Coffee | Giovani Machado | dioscoffeept@gmail.com | total profit €0 (pro bono)
+
+TEAM (4 real):
+- PO — Pedro Oliveira | Creative Director
+- CP — Catarina Pinto | Strategist & Designer
+- AA — Anaís Almeida | Designer
+- IF — Íris Filipe | Graphic Designer
+
+PROJECTS AND FINANCIALS (7 real):
+
+Beach Pizza — Brand Book | €150 | completed | March 2026
+Team: Catarina Pinto | No freelancer costs | Gross €150 / Costs €0 / Net €150
+
+Beach Pizza — Cavalete | €120 | active | June 2026
+Team: Anaís Almeida, Catarina Pinto | No freelancer costs | Gross €120 / Costs €0 / Net €120
+
+Samuel — Naming & Branding | €800 | active | May 2026
+Team: Pedro Oliveira, Catarina Pinto, Íris Filipe
+Freelancer costs: Pedro Oliveira €700 + Íris Filipe €240 = €940
+Gross €800 / Costs €940 / Net -€140 — flag clearly as over budget
+
+Samuel — Digital & Applications | €800 | not yet started | August 2026
+Team: Pedro Oliveira, Catarina Pinto | No costs yet | All financial fields €0 / pending
+
+Corteiz — Lisbon Pop-Up Production | €1,300 | completed | June 19 2026
+Team: Catarina Pinto (solo) | No freelancer costs | Gross €1,300 / Costs €0 / Net €1,300
+
+Dio's Coffee — Brand Identity & POS Design | €0 | pro bono | completed | February 2026
+Team: Pedro Oliveira, Catarina Pinto
+Pedro Oliveira paid €300 directly by client — no cost to VĀC
+Gross €0 / Costs €0 / Net €0 — mark clearly as pro bono
+
+DASHBOARD TOTALS (confirm these):
+- Total clients: 4
+- Total projects: 7 (2 active, 1 not yet started, 4 completed)
+- Total paid revenue: €2,320
+- Pro bono: 1 project
+- Active crew: PO, CP, AA, IF
+- Zero out all cash flow figures — no invented numbers
+- Remove all dummy approvals, budget alerts, tax milestones and briefing room entries
+
+After completing, typecheck and report every file changed and every piece of dummy data removed.
