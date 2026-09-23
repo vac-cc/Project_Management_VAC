@@ -114,6 +114,24 @@ export const PROJECTS: Project[] = [
     deliverables: [],
     notes: "Catarina Pinto — Executive Producer; solo, no subcontractors.",
   },
+  {
+    id: "DIO-001",
+    client: "Dio's Coffee",
+    clientId: "DIO",
+    clientAccent: "#99CC33",
+    title: "Brand Identity & POS Design",
+    brief: "Full brand creation for a mobile specialty coffee concept — naming drawn from the founder's identity, visual identity system, brand in use across cart, uniform, cups and packaging, and mobile point of sale design.",
+    tags: ["Naming", "Branding", "Identity", "Point of Sale"],
+    budget: "€0",
+    crew: ["PO", "CP"],
+    status: "past",
+    milestones: [{ label: "Start", date: "Feb 2026" }],
+    deliverables: [],
+    notes: "Pedro Oliveira — €300 paid directly by client; no cost to VĀC.",
+    freelancerCosts: [
+      { name: "Pedro Oliveira", amount: "€300 paid directly by client" },
+    ],
+  },
 ];
 
 // ── Crew palette (mirrors ASSIGNEE_PALETTE) ──────────────────

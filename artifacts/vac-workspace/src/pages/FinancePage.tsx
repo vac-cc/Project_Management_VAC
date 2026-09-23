@@ -101,6 +101,15 @@ const REAL_PROJECT_FINANCIALS: Record<string, ProjectFinanceRecord> = {
           : [],
     })),
   },
+  "DIO-001": {
+    budget: 0,
+    team: [
+      { name: "Pedro Oliveira", role: "Creative Director" },
+      { name: "Catarina Pinto", role: "Strategist" },
+    ],
+    costCenters: emptyCostCenters(),
+    note: "Pedro Oliveira — €300 paid directly by client; no cost to VĀC.",
+  },
 };
 
 export function buildCostCenters(project: Project): CostCenter[] {

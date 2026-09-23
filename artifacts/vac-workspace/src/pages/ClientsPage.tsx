@@ -65,7 +65,7 @@ export const CLIENTS = [
     bio: "Dio's is a pop-up specialty coffee concept built to go where people go — parks, streets, markets, events and festivals. VĀC developed the full brand: naming, identity, brand in use and mobile point of sale design.",
     activeProjects: [],
     profit: "€0",
-    projectCount: 0,
+    projectCount: 1,
     accentColor: "#99CC33",
   },
 ];

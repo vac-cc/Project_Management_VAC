@@ -51,6 +51,7 @@ export const SEED_TEAM: TeamMember[] = [
     projects: [
       "Samuel — Naming & Branding",
       "Samuel — Digital & Applications",
+      "Dio's Coffee — Brand Identity & POS Design",
     ],
   },
   {
@@ -71,6 +72,7 @@ export const SEED_TEAM: TeamMember[] = [
       "Samuel — Naming & Branding",
       "Samuel — Digital & Applications",
       "Corteiz — Lisbon Pop-Up Production",
+      "Dio's Coffee — Brand Identity & POS Design",
     ],
   },
   {
