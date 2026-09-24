@@ -16,6 +16,12 @@ Internal operating platform for VĀC • Conscious Communication: dashboard, pro
 - Needs Node 22+, pnpm 10, PostgreSQL 16; set `DATABASE_URL` (see `.env.example`)
 - `pnpm install && pnpm db:push && pnpm dev` starts the API on 8080 and the web app on 5173 (web proxies `/api` to the API)
 
+## claude.ai beta (Artifact)
+
+- `pnpm --filter @workspace/vac-workspace run build:preview` builds one self-contained page (`dist/preview/vac-workspace-beta.html`): hash routing, and `/api/sessions/*` answered in the browser by `src/preview/mockApi.ts` using the artifact's shared `db` (collections `sessions`, `briefs`), with the same brief and email code as the server (`artifacts/api-server/src/lib/onboarding-logic.ts`).
+- The PDF report needs the server and is disabled in the beta; email HTML export goes through the viewer's download prompt.
+- Published at https://claude.ai/artifact/BechCFnMULv1CYNGkVun8k; republish that URL to update it.
+
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9

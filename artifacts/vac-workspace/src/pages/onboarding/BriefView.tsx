@@ -116,7 +116,11 @@ export default function BriefView() {
     }
   }
 
+  // The claude.ai beta has no server to render the PDF.
+  const pdfAvailable = !import.meta.env.VITE_PREVIEW;
+
   function downloadPdf() {
+    if (!pdfAvailable) return;
     window.open(`/api/sessions/${sessionId}/report.pdf`, "_blank");
   }
 
@@ -330,11 +334,13 @@ export default function BriefView() {
             <div className="flex flex-wrap gap-3 mb-8">
               <button
                 onClick={downloadPdf}
-                className="flex items-center gap-2.5 px-5 py-2.5 text-sm font-medium transition-opacity hover:opacity-90"
+                disabled={!pdfAvailable}
+                title={pdfAvailable ? undefined : "Available in the full version with the server"}
+                className="flex items-center gap-2.5 px-5 py-2.5 text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
                 style={{ background: GREEN, color: "#fff" }}
               >
                 <Download className="w-3.5 h-3.5" />
-                Download PDF Report
+                {pdfAvailable ? "Download PDF Report" : "PDF Report (full version)"}
               </button>
 
               <button
@@ -454,12 +460,23 @@ export default function BriefView() {
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => {
+                onClick={async () => {
+                  const filename = `${emailPreview.type === "client" ? "client" : "director"}-email_${session?.clientCompany ?? "output"}.html`;
+                  if (import.meta.env.VITE_PREVIEW) {
+                    // claude.ai beta: files go through the viewer's download capability
+                    const claude = (window as unknown as { claude?: { use(n: string): Promise<unknown> } }).claude;
+                    const downloads = (await claude?.use("downloads").catch(() => null)) as
+                      | { save(f: { filename: string; data: string }): Promise<unknown> }
+                      | null
+                      | undefined;
+                    await downloads?.save({ filename, data: emailPreview.html }).catch(() => undefined);
+                    return;
+                  }
                   const blob = new Blob([emailPreview.html], { type: "text/html" });
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement("a");
                   a.href = url;
-                  a.download = `${emailPreview.type === "client" ? "client" : "director"}-email_${session?.clientCompany ?? "output"}.html`;
+                  a.download = filename;
                   a.click();
                   URL.revokeObjectURL(url);
                 }}

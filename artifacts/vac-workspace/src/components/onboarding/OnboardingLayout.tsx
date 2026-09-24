@@ -3,6 +3,9 @@ import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import Sidebar from "@/components/Sidebar";
 import vacLogo from "@assets/Branding_RGB_V2-01_1782856164314.png";
+import symbol02 from "@/assets/symbols/symbol-02.png";
+import symbol04 from "@/assets/symbols/symbol-04.png";
+import symbol06 from "@/assets/symbols/symbol-06.png";
 
 // ── Onboarding section shell ─────────────────────────────────────────
 // The global Workspace sidebar stays on the left (collapsed by default so the
@@ -51,9 +54,9 @@ export default function OnboardingLayout({ children }: LayoutProps) {
             className="px-6 pt-4 pb-3 border-b border-border"
             style={{ display: "flex", alignItems: "center", gap: "6px" }}
           >
-            <img src={`${import.meta.env.BASE_URL}symbols/symbol-02.png`} alt="" style={{ width: "22px", height: "22px", objectFit: "contain" }} />
-            <img src={`${import.meta.env.BASE_URL}symbols/symbol-04.png`} alt="" style={{ width: "22px", height: "22px", objectFit: "contain" }} />
-            <img src={`${import.meta.env.BASE_URL}symbols/symbol-06.png`} alt="" style={{ width: "22px", height: "22px", objectFit: "contain" }} />
+            <img src={symbol02} alt="" style={{ width: "22px", height: "22px", objectFit: "contain" }} />
+            <img src={symbol04} alt="" style={{ width: "22px", height: "22px", objectFit: "contain" }} />
+            <img src={symbol06} alt="" style={{ width: "22px", height: "22px", objectFit: "contain" }} />
           </div>
 
           <div className="px-7 pt-6 pb-1">

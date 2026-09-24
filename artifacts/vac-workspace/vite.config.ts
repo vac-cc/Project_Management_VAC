@@ -3,6 +3,11 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+import { viteSingleFile } from "vite-plugin-singlefile";
+
+// `VITE_PREVIEW=1` builds the claude.ai beta: one self-contained HTML file,
+// hash routing and an in-browser API (see src/preview/mockApi.ts).
+const isPreview = Boolean(process.env.VITE_PREVIEW);
 
 const rawPort = process.env.PORT;
 
@@ -27,10 +32,11 @@ if (!basePath) {
 }
 
 export default defineConfig({
-  base: basePath,
+  base: isPreview ? "./" : basePath,
   plugins: [
     react(),
     tailwindcss(),
+    ...(isPreview ? [viteSingleFile()] : []),
     runtimeErrorOverlay(),
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined
@@ -50,14 +56,21 @@ export default defineConfig({
     alias: {
       "@": path.resolve(import.meta.dirname, "src"),
       "@assets": path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
+      "@server": path.resolve(import.meta.dirname, "..", "api-server", "src"),
     },
     dedupe: ["react", "react-dom"],
   },
   root: path.resolve(import.meta.dirname),
-  build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
-    emptyOutDir: true,
-  },
+  build: isPreview
+    ? {
+        outDir: path.resolve(import.meta.dirname, "dist/preview"),
+        emptyOutDir: true,
+        assetsInlineLimit: 100_000_000,
+      }
+    : {
+        outDir: path.resolve(import.meta.dirname, "dist/public"),
+        emptyOutDir: true,
+      },
   server: {
     port,
     strictPort: true,

@@ -8,7 +8,7 @@
 
 @font-face {
   font-family: 'BillCorporate';
-  src: url('/fonts/BillCorporate-Roman.otf') format('opentype');
+  src: url('../assets/fonts/BillCorporate-Roman.otf') format('opentype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -16,7 +16,7 @@
 
 @font-face {
   font-family: 'BillCorporate';
-  src: url('/fonts/BillCorporate-Bold.otf') format('opentype');
+  src: url('../assets/fonts/BillCorporate-Bold.otf') format('opentype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;

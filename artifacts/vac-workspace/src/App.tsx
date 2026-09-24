@@ -1,4 +1,5 @@
 import { Switch, Route, Router as WouterRouter } from "wouter";
+import { useHashLocation } from "wouter/use-hash-location";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -52,7 +53,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <OperationsStateProvider>
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+          {/* The claude.ai beta is a single page, so it routes on the URL hash */}
+          <WouterRouter
+            {...(import.meta.env.VITE_PREVIEW
+              ? { hook: useHashLocation }
+              : { base: import.meta.env.BASE_URL.replace(/\/$/, "") })}
+          >
             <Router />
           </WouterRouter>
           <Toaster />
