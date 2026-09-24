@@ -66,6 +66,14 @@ export default defineConfig({
     fs: {
       strict: true,
     },
+    // Local development outside Replit: forward /api to the API server.
+    // On Replit the path router sends /api straight to the api-server artifact.
+    proxy: {
+      "/api": {
+        target: process.env.API_URL ?? "http://localhost:8080",
+        changeOrigin: true,
+      },
+    },
   },
   preview: {
     port,

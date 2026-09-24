@@ -1,22 +1,24 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: VĀC Workspace API (operations + client onboarding)
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: sessions
+    description: Onboarding session operations
+  - name: briefs
+    description: Strategic brief operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +26,326 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /sessions:
+    get:
+      operationId: listSessions
+      tags: [sessions]
+      summary: List all onboarding sessions
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [in_progress, completed, paused]
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OnboardingSession"
+    post:
+      operationId: createSession
+      tags: [sessions]
+      summary: Start a new onboarding session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionInput"
+      responses:
+        "201":
+          description: Session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingSession"
+
+  /sessions/summary:
+    get:
+      operationId: getSessionsSummary
+      tags: [sessions]
+      summary: Get dashboard summary stats
+      responses:
+        "200":
+          description: Aggregate session stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionsSummary"
+
+  /sessions/recent:
+    get:
+      operationId: getRecentSessions
+      tags: [sessions]
+      summary: Get recent onboarding activity
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 5
+      responses:
+        "200":
+          description: Recent sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OnboardingSession"
+
+  /sessions/{id}:
+    get:
+      operationId: getSession
+      tags: [sessions]
+      summary: Get a session by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Session found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingSession"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateSession
+      tags: [sessions]
+      summary: Update session progress
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionUpdate"
+      responses:
+        "200":
+          description: Updated session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingSession"
+    delete:
+      operationId: deleteSession
+      tags: [sessions]
+      summary: Delete a session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /sessions/{id}/complete:
+    post:
+      operationId: completeSession
+      tags: [sessions]
+      summary: Mark session complete and generate strategic brief
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Session completed with brief
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingSession"
+
+  /sessions/{id}/brief:
+    get:
+      operationId: getSessionBrief
+      tags: [briefs]
+      summary: Get the strategic brief for a completed session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Strategic brief
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrategicBrief"
+        "404":
+          description: Brief not found
+
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    OnboardingSession:
+      type: object
+      required: [id, clientName, clientCompany, accountManager, status, currentStep, totalSteps, completionPercent, responses, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        clientName:
+          type: string
+        clientCompany:
+          type: string
+        clientEmail:
+          type: ["string", "null"]
+        accountManager:
+          type: string
+        status:
+          type: string
+          enum: [in_progress, completed, paused]
+        currentStep:
+          type: integer
+        totalSteps:
+          type: integer
+        completionPercent:
+          type: integer
+        responses:
+          type: object
+          description: JSON blob of all step responses
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: ["string", "null"]
+          format: date-time
+
+    SessionInput:
+      type: object
+      required: [clientName, clientCompany, accountManager]
+      properties:
+        clientName:
+          type: string
+          minLength: 1
+        clientCompany:
+          type: string
+          minLength: 1
+        clientEmail:
+          type: string
+        accountManager:
+          type: string
+          minLength: 1
+
+    SessionUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [in_progress, completed, paused]
+        currentStep:
+          type: integer
+        responses:
+          type: object
+          additionalProperties: true
+
+    SessionsSummary:
+      type: object
+      required: [total, completed, inProgress, paused, completionRate, avgCompletionMinutes]
+      properties:
+        total:
+          type: integer
+        completed:
+          type: integer
+        inProgress:
+          type: integer
+        paused:
+          type: integer
+        completionRate:
+          type: number
+          description: Percentage 0-100
+        avgCompletionMinutes:
+          type: ["number", "null"]
+
+    ReadingSuggestion:
+      type: object
+      required: [title, author, type]
+      properties:
+        title:
+          type: string
+        author:
+          type: string
+        type:
+          type: string
+    StrategicBrief:
+      type: object
+      required: [id, sessionId, clientSnapshot, keyOpportunities, strategicRisks, audienceInsights, messagingHypotheses, recommendedNextSteps, generatedAt]
+      properties:
+        id:
+          type: integer
+        sessionId:
+          type: integer
+        clientSnapshot:
+          type: object
+          additionalProperties: true
+        keyOpportunities:
+          type: array
+          items:
+            type: string
+        strategicRisks:
+          type: array
+          items:
+            type: string
+        audienceInsights:
+          type: array
+          items:
+            type: string
+        messagingHypotheses:
+          type: array
+          items:
+            type: string
+        recommendedNextSteps:
+          type: array
+          items:
+            type: string
+        internalNotes:
+          type: ["string", "null"]
+        redFlags:
+          type: array
+          items:
+            type: string
+        readingSuggestions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReadingSuggestion"
+        industryContext:
+          type: object
+          additionalProperties: true
+        generatedAt:
+          type: string
+          format: date-time

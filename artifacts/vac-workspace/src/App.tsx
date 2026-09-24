@@ -5,8 +5,24 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Workspace from "@/pages/Workspace";
 import { OperationsStateProvider } from "@/state/OperationsState";
+import OnboardingDashboard from "@/pages/onboarding/Dashboard";
+import OnboardingNewSession from "@/pages/onboarding/NewSession";
+import OnboardingFlow from "@/pages/onboarding/OnboardingFlow";
+import OnboardingSessionsList from "@/pages/onboarding/SessionsList";
+import OnboardingSessionDetail from "@/pages/onboarding/SessionDetail";
+import OnboardingBriefView from "@/pages/onboarding/BriefView";
 
 const queryClient = new QueryClient();
+
+// The live questionnaire is full screen (client facing), outside the
+// Workspace shell, but keeps the Onboarding design scope.
+function OnboardingFlowPage() {
+  return (
+    <div className="vac-onboarding">
+      <OnboardingFlow />
+    </div>
+  );
+}
 
 function Router() {
   return (
@@ -18,6 +34,14 @@ function Router() {
       <Route path="/vault" component={Workspace} />
       <Route path="/team" component={Workspace} />
       <Route path="/settings" component={Workspace} />
+
+      {/* Client Onboarding console (merged from the Onboarding app) */}
+      <Route path="/onboarding" component={OnboardingDashboard} />
+      <Route path="/onboarding/new" component={OnboardingNewSession} />
+      <Route path="/onboarding/flow/:id" component={OnboardingFlowPage} />
+      <Route path="/onboarding/sessions" component={OnboardingSessionsList} />
+      <Route path="/onboarding/sessions/:id/brief" component={OnboardingBriefView} />
+      <Route path="/onboarding/sessions/:id" component={OnboardingSessionDetail} />
       <Route component={NotFound} />
     </Switch>
   );

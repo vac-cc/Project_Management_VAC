@@ -1,6 +1,7 @@
 import React from "react";
 import {
   LayoutDashboard,
+  ClipboardList,
   FolderKanban,
   Users,
   Briefcase,
@@ -18,6 +19,7 @@ const navItems = [
   { name: "Dashboard", path: "/",        icon: LayoutDashboard },
   { name: "Projects",  path: "/projects", icon: FolderKanban   },
   { name: "Clients",   path: "/clients",  icon: Users          },
+  { name: "Onboarding", path: "/onboarding", icon: ClipboardList },
   { name: "Finance",   path: "/finance",  icon: Briefcase      },
   { name: "Vault",     path: "/vault",    icon: ShieldCheck    },
   { name: "Team",      path: "/team",     icon: CircleDashed   },

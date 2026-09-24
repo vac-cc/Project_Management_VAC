@@ -1,0 +1,148 @@
+/* ──────────────────────────────────────────────────────────────────────
+   VĀC Onboarding Console: scoped design language
+   Everything inside `.vac-onboarding` keeps the original Onboarding look
+   (VĀC Green primary, Rust, Bill Corporate wide, Space Mono labels).
+   The rest of the Workspace keeps its own tokens from index.css.
+   This file is the reference when adapting other Workspace areas.
+   ────────────────────────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: 'BillCorporate';
+  src: url('/fonts/BillCorporate-Roman.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BillCorporate';
+  src: url('/fonts/BillCorporate-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+.vac-onboarding {
+  --elevate-1: rgba(0,0,0,0.02);
+  --elevate-2: rgba(0,0,0,0.04);
+
+  --background: 0 0% 100%;
+  --foreground: 60 5% 11%;
+  --border: 43 12% 87%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 60 5% 11%;
+  --card-border: 43 12% 87%;
+
+  --sidebar: 43 20% 97%;
+  --sidebar-foreground: 60 5% 11%;
+  --sidebar-border: 43 12% 87%;
+  --sidebar-primary: 88 68% 42%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 43 20% 93%;
+  --sidebar-accent-foreground: 60 5% 11%;
+  --sidebar-ring: 88 68% 42%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 60 5% 11%;
+  --popover-border: 43 12% 87%;
+
+  /* VĀC Green #7DB523 */
+  --primary: 88 68% 42%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 43 20% 95%;
+  --secondary-foreground: 60 5% 11%;
+
+  --muted: 43 15% 95%;
+  --muted-foreground: 43 5% 52%;
+
+  --accent: 43 20% 93%;
+  --accent-foreground: 60 5% 11%;
+
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* VĀC Rust #A44B1C */
+  --rust: 20 71% 37%;
+
+  --input: 43 12% 87%;
+  --ring: 88 68% 42%;
+
+  --chart-1: 88 68% 42%;
+  --chart-2: 88 55% 35%;
+  --chart-3: 88 40% 28%;
+  --chart-4: 43 12% 70%;
+  --chart-5: 43 12% 55%;
+
+  --app-font-sans: 'BillCorporate', 'Inter', sans-serif;
+  --app-font-brand: 'BillCorporate', 'Inter', sans-serif;
+  --app-font-mono: 'Space Mono', monospace;
+
+  --shadow-2xs: none;
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+  --shadow-2xl: none;
+
+  font-family: var(--app-font-sans);
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.65;
+  letter-spacing: 0em;
+  color: hsl(var(--foreground));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.vac-onboarding .font-sans { font-family: var(--app-font-sans); }
+.vac-onboarding .font-mono { font-family: var(--app-font-mono); }
+
+.vac-onboarding h1,
+.vac-onboarding h2,
+.vac-onboarding h3,
+.vac-onboarding h4 {
+  font-family: var(--app-font-brand);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.vac-onboarding ::selection { background: hsl(88 68% 42% / 0.2); }
+
+.vac-onboarding .font-brand {
+  font-family: var(--app-font-brand);
+  font-weight: 700;
+}
+
+.vac-onboarding .label-mono {
+  font-family: var(--app-font-mono);
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.vac-onboarding [contenteditable][data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+}
+
+.vac-onboarding .hover-elevate,
+.vac-onboarding .active-elevate { position: relative; z-index: 0; }
+.vac-onboarding .hover-elevate::after,
+.vac-onboarding .active-elevate::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0px;
+  border-radius: inherit;
+  z-index: 999;
+}
+.vac-onboarding .hover-elevate:hover::after { background-color: var(--elevate-1); }
+.vac-onboarding .active-elevate:active::after { background-color: var(--elevate-2); }

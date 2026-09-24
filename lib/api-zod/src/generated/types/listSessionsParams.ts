@@ -5,7 +5,9 @@
  * VĀC Workspace API (operations + client onboarding)
  * OpenAPI spec version: 0.1.0
  */
+import type { ListSessionsStatus } from './listSessionsStatus';
 
-export interface HealthStatus {
-  status: string;
-}
+export type ListSessionsParams = {
+status?: ListSessionsStatus;
+search?: string;
+};
