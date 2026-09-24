@@ -11,6 +11,11 @@ Internal operating platform for VĀC • Conscious Communication: dashboard, pro
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - Required env: `DATABASE_URL` — Postgres connection string
 
+## Run outside Replit (Claude / local)
+
+- Needs Node 22+, pnpm 10, PostgreSQL 16; set `DATABASE_URL` (see `.env.example`)
+- `pnpm install && pnpm db:push && pnpm dev` starts the API on 8080 and the web app on 5173 (web proxies `/api` to the API)
+
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
